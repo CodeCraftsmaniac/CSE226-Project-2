@@ -40,11 +40,6 @@ jobs:
             --scope adamjeeans-projects \
             --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Pull production environment
-        run: |
-          cd web_app
-          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
       - name: Deploy to production
         run: |
           cd web_app
