@@ -2,23 +2,27 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../design/app_design.dart';
+export '../design/app_design.dart';
+
 // ═══════════════════════════════════════════════════════════════════════════════
-// Design Tokens — Dark Glassmorphism Palette
+// Legacy Color Tokens — kept as top-level constants so existing screens compile
+// without churn. New code should prefer `AppColors.*` in `design/app_design.dart`.
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const kBackground = Color(0xFF0F172A);
-const kSurface = Color(0xFF1E293B);
-const kSurfaceHigh = Color(0xFF263349);
-const kPrimary = Color(0xFF38BDF8);
-const kPrimaryDark = Color(0xFF0EA5E9);
-const kSuccess = Color(0xFF10B981);
-const kWarning = Color(0xFFF59E0B);
-const kError = Color(0xFFEF4444);
-const kTextPrimary = Color(0xFFF1F5F9);
-const kTextSecondary = Color(0xFF94A3B8);
-const kTextTertiary = Color(0xFF64748B);
-const kBorder = Color(0xFF334155);
-const kBorderLight = Color(0xFF1E293B);
+const kBackground = AppColors.background;
+const kSurface = AppColors.surface;
+const kSurfaceHigh = AppColors.surfaceHigh;
+const kPrimary = AppColors.primary;
+const kPrimaryDark = AppColors.primaryDark;
+const kSuccess = AppColors.success;
+const kWarning = AppColors.warning;
+const kError = AppColors.error;
+const kTextPrimary = AppColors.textPrimary;
+const kTextSecondary = AppColors.textSecondary;
+const kTextTertiary = AppColors.textTertiary;
+const kBorder = AppColors.border;
+const kBorderLight = AppColors.borderSoft;
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Grade Color Helper
@@ -41,81 +45,46 @@ Color gradeColor(String grade) {
 ThemeData buildAppTheme() {
   final base = ThemeData(brightness: Brightness.dark, useMaterial3: true);
 
+  // ── Apple-style type scale ─────────────────────────────────────────────────
+  // Five canonical roles — Large Title · Title · Headline · Body · Caption —
+  // mapped onto Material 3 slots so existing `Theme.of(context).textTheme.*`
+  // usages automatically inherit the new scale.
+  //
+  //   displayLarge  → (reserved) mega hero
+  //   displayMedium → Large Title  (34 / 800 / -0.6)
+  //   displaySmall  → Title 1      (26 / 700 / -0.4)
+  //   headlineLarge → Title 1
+  //   headlineMedium→ Title 2      (20 / 700 / -0.2)
+  //   headlineSmall → Title 3      (17 / 700 / -0.1)
+  //   titleLarge    → Title 3
+  //   titleMedium   → Headline     (16 / 600 / -0.1)
+  //   titleSmall    → Callout      (14 / 500)
+  //   bodyLarge     → Body         (15 / 400)
+  //   bodyMedium    → Subheadline  (13 / 400)
+  //   bodySmall     → Footnote     (12 / 400)
+  //   labelLarge    → Headline     (14 / 600)
+  //   labelMedium   → Caption      (12 / 600 / +0.4)
+  //   labelSmall    → Eyebrow      (11 / 700 / +1.4)
+
   final textTheme = GoogleFonts.outfitTextTheme(base.textTheme).copyWith(
-    displayLarge: GoogleFonts.outfit(
-      fontSize: 48,
-      fontWeight: FontWeight.w800,
-      color: kTextPrimary,
-      letterSpacing: -1.5,
-    ),
-    displaySmall: GoogleFonts.outfit(
-      fontSize: 34,
-      fontWeight: FontWeight.w700,
-      color: kTextPrimary,
-      letterSpacing: -0.5,
-    ),
-    headlineLarge: GoogleFonts.outfit(
-      fontSize: 30,
-      fontWeight: FontWeight.w700,
-      color: kTextPrimary,
-    ),
-    headlineMedium: GoogleFonts.outfit(
-      fontSize: 24,
-      fontWeight: FontWeight.w700,
-      color: kTextPrimary,
-    ),
-    headlineSmall: GoogleFonts.outfit(
-      fontSize: 20,
+    displayLarge: AppText.largeTitle().copyWith(fontSize: 40),
+    displayMedium: AppText.largeTitle(),
+    displaySmall: AppText.title1(),
+    headlineLarge: AppText.title1(),
+    headlineMedium: AppText.title2(),
+    headlineSmall: AppText.title3(),
+    titleLarge: AppText.title3(),
+    titleMedium: AppText.headline(),
+    titleSmall: AppText.callout(),
+    bodyLarge: AppText.body(),
+    bodyMedium: AppText.subheadline(),
+    bodySmall: AppText.footnote(),
+    labelLarge: AppText.headline().copyWith(fontSize: 14),
+    labelMedium: AppText.caption().copyWith(
       fontWeight: FontWeight.w600,
-      color: kTextPrimary,
+      letterSpacing: 0.4,
     ),
-    titleLarge: GoogleFonts.outfit(
-      fontSize: 18,
-      fontWeight: FontWeight.w600,
-      color: kTextPrimary,
-    ),
-    titleMedium: GoogleFonts.outfit(
-      fontSize: 16,
-      fontWeight: FontWeight.w500,
-      color: kTextPrimary,
-    ),
-    titleSmall: GoogleFonts.outfit(
-      fontSize: 14,
-      fontWeight: FontWeight.w500,
-      color: kTextSecondary,
-    ),
-    bodyLarge: GoogleFonts.outfit(
-      fontSize: 16,
-      fontWeight: FontWeight.w400,
-      color: kTextSecondary,
-    ),
-    bodyMedium: GoogleFonts.outfit(
-      fontSize: 14,
-      fontWeight: FontWeight.w400,
-      color: kTextSecondary,
-    ),
-    bodySmall: GoogleFonts.outfit(
-      fontSize: 12,
-      fontWeight: FontWeight.w400,
-      color: kTextTertiary,
-    ),
-    labelLarge: GoogleFonts.outfit(
-      fontSize: 14,
-      fontWeight: FontWeight.w600,
-      color: kTextPrimary,
-    ),
-    labelMedium: GoogleFonts.outfit(
-      fontSize: 12,
-      fontWeight: FontWeight.w600,
-      color: kTextSecondary,
-      letterSpacing: 0.5,
-    ),
-    labelSmall: GoogleFonts.outfit(
-      fontSize: 11,
-      fontWeight: FontWeight.w500,
-      color: kTextTertiary,
-      letterSpacing: 0.8,
-    ),
+    labelSmall: AppText.eyebrow(color: AppColors.textTertiary),
   );
 
   return base.copyWith(
@@ -137,17 +106,13 @@ ThemeData buildAppTheme() {
       foregroundColor: kTextPrimary,
       elevation: 0,
       scrolledUnderElevation: 0,
-      titleTextStyle: GoogleFonts.outfit(
-        fontSize: 20,
-        fontWeight: FontWeight.w700,
-        color: kTextPrimary,
-      ),
+      titleTextStyle: AppText.title3(),
     ),
     cardTheme: CardThemeData(
       color: kSurface,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         side: const BorderSide(color: kBorder, width: 1),
       ),
       margin: EdgeInsets.zero,
@@ -156,38 +121,40 @@ ThemeData buildAppTheme() {
       filled: true,
       fillColor: kSurface,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         borderSide: const BorderSide(color: kBorder),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         borderSide: const BorderSide(color: kBorder),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         borderSide: const BorderSide(color: kPrimary, width: 2),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         borderSide: const BorderSide(color: kError),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         borderSide: const BorderSide(color: kError, width: 2),
       ),
-      hintStyle: GoogleFonts.outfit(color: kTextTertiary),
-      labelStyle: GoogleFonts.outfit(color: kTextSecondary),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      hintStyle: AppText.body(color: AppColors.textTertiary),
+      labelStyle: AppText.callout(color: AppColors.textSecondary),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 14),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: kPrimary,
-        foregroundColor: const Color(0xFF0C1A2E),
+        foregroundColor: AppColors.textInverse,
         elevation: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        textStyle: GoogleFonts.outfit(
-          fontSize: 16,
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: 14),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md)),
+        textStyle: AppText.headline(color: AppColors.textInverse).copyWith(
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -195,23 +162,23 @@ ThemeData buildAppTheme() {
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: kPrimary,
-        side: const BorderSide(color: kPrimary, width: 1.5),
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        textStyle: GoogleFonts.outfit(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
+        side: const BorderSide(color: kPrimary, width: 1.4),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: 14),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md)),
+        textStyle: AppText.headline(color: AppColors.primary),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         backgroundColor: kPrimary,
-        foregroundColor: const Color(0xFF0C1A2E),
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        textStyle: GoogleFonts.outfit(
-          fontSize: 16,
+        foregroundColor: AppColors.textInverse,
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: 14),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md)),
+        textStyle: AppText.headline(color: AppColors.textInverse).copyWith(
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -224,9 +191,10 @@ ThemeData buildAppTheme() {
       circularTrackColor: kSurface,
     ),
     snackBarTheme: SnackBarThemeData(
-      backgroundColor: kSurface,
-      contentTextStyle: GoogleFonts.outfit(color: kTextPrimary),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      backgroundColor: kSurfaceHigh,
+      contentTextStyle: AppText.body(),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.sm)),
       behavior: SnackBarBehavior.floating,
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
@@ -246,25 +214,39 @@ ThemeData buildAppTheme() {
       }),
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
-          return GoogleFonts.outfit(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: kPrimary,
-          );
+          return AppText.caption(color: AppColors.primary)
+              .copyWith(fontWeight: FontWeight.w700);
         }
-        return GoogleFonts.outfit(
-          fontSize: 12,
-          fontWeight: FontWeight.w400,
-          color: kTextTertiary,
-        );
+        return AppText.caption();
       }),
     ),
     chipTheme: ChipThemeData(
       backgroundColor: kSurface,
       selectedColor: kPrimary.withValues(alpha: 0.2),
-      labelStyle: GoogleFonts.outfit(fontSize: 13, color: kTextPrimary),
+      labelStyle: AppText.subheadline(color: AppColors.textPrimary),
       side: const BorderSide(color: kBorder),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.pill)),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    ),
+    dialogTheme: DialogThemeData(
+      backgroundColor: kSurface,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        side: const BorderSide(color: kBorder),
+      ),
+      titleTextStyle: AppText.title3(),
+      contentTextStyle: AppText.body(color: AppColors.textSecondary),
+    ),
+    popupMenuTheme: PopupMenuThemeData(
+      color: kSurface,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        side: const BorderSide(color: kBorder),
+      ),
+      textStyle: AppText.body(),
     ),
   );
 }

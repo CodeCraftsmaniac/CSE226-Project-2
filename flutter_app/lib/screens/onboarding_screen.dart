@@ -129,10 +129,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               const SizedBox(width: 8),
                               Text(
                                 'NSU Audit',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: AppText.callout(color: Colors.white)
+                                    .copyWith(fontWeight: FontWeight.w600),
                               ),
                             ],
                           ),
@@ -143,8 +141,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           onPressed: _completeOnboarding,
                           child: Text(
                             'Skip',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: const Color(0xFF7A8BA6),
+                            style: AppText.callout(
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ),
@@ -167,7 +165,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                   // Bottom section with indicators and button
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.md,
+                      AppSpacing.lg,
+                      AppSpacing.xl,
+                    ),
                     child: Column(
                       children: [
                         // Page indicators
@@ -198,28 +201,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           child: FilledButton(
                             onPressed: _nextPage,
                             style: FilledButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 18),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(
+                                    AppRadius.md),
                               ),
-                              backgroundColor: const Color(0xFF57C5FF),
+                              backgroundColor: AppColors.primary,
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  _currentPage == _pages.length - 1 ? 'Get Started' : 'Continue',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: const Color(0xFF0A1628),
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Icon(
                                   _currentPage == _pages.length - 1
-                                      ? Icons.rocket_launch
-                                      : Icons.arrow_forward,
-                                  color: const Color(0xFF0A1628),
+                                      ? 'Get Started'
+                                      : 'Continue',
+                                  style: AppText.headline(
+                                    color: AppColors.textInverse,
+                                  ).copyWith(fontWeight: FontWeight.w700),
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                const Icon(
+                                  Icons.arrow_forward_rounded,
+                                  color: AppColors.textInverse,
                                   size: 20,
                                 ),
                               ],
@@ -296,10 +299,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             page.title,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontSize: 28,
-              height: 1.2,
-            ),
+            style: AppText.title1(),
           )
               .animate(key: ValueKey('title_$index'))
               .fadeIn(delay: 150.ms, duration: 400.ms)
@@ -311,10 +311,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             page.subtitle,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: const Color(0xFF9AADBE),
-              height: 1.5,
-            ),
+            style: AppText.body(color: AppColors.textSecondary)
+                .copyWith(height: 1.5),
           )
               .animate(key: ValueKey('subtitle_$index'))
               .fadeIn(delay: 250.ms, duration: 400.ms)
@@ -331,22 +329,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               final i = entry.key;
               final feature = entry.value;
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md, vertical: 10),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                  border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.08)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(feature.icon, size: 18, color: page.iconColor),
-                    const SizedBox(width: 8),
+                    Icon(feature.icon, size: 16, color: page.iconColor),
+                    const SizedBox(width: AppSpacing.sm),
                     Text(
                       feature.label,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.white,
-                      ),
+                      style: AppText.subheadline(color: Colors.white),
                     ),
                   ],
                 ),

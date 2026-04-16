@@ -156,7 +156,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.pageGutter, 8, AppSpacing.pageGutter, AppSpacing.bottomSafePad),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate(
                     _isLoading

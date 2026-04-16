@@ -154,17 +154,14 @@ class _SplashScreenState extends State<SplashScreen> {
                   // Title
                   Text(
                     'North South University',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: const Color(0xFFB4C7DA),
-                      fontSize: 16,
-                      letterSpacing: 2,
-                    ),
+                    style: AppText.callout(color: const Color(0xFFB4C7DA))
+                        .copyWith(letterSpacing: 1.8),
                   )
                       .animate()
                       .fadeIn(delay: 300.ms, duration: 500.ms)
                       .slideY(begin: 0.3, end: 0, duration: 500.ms, curve: Curves.easeOut),
 
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm),
 
                   // App name with gradient
                   ShaderMask(
@@ -173,11 +170,8 @@ class _SplashScreenState extends State<SplashScreen> {
                     ).createShader(bounds),
                     child: Text(
                       'Degree Audit',
-                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        fontSize: 38,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
+                      style: AppText.largeTitle(color: Colors.white)
+                          .copyWith(fontSize: 36, fontWeight: FontWeight.w800),
                     ),
                   )
                       .animate()
@@ -200,9 +194,8 @@ class _SplashScreenState extends State<SplashScreen> {
                         const SizedBox(height: 16),
                         Text(
                           'Preparing your audit engine...',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: const Color(0xFF7A8BA6),
-                            fontSize: 13,
+                          style: AppText.footnote(
+                            color: const Color(0xFF9AA7BD),
                           ),
                         ),
                       ],
@@ -238,9 +231,8 @@ class _SplashScreenState extends State<SplashScreen> {
                       const SizedBox(width: 8),
                       Text(
                         'Premium Mobile Edition v2.0',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: const Color(0xFF7A8BA6),
-                          fontSize: 12,
+                        style: AppText.footnote(
+                          color: const Color(0xFF9AA7BD),
                         ),
                       ),
                     ],

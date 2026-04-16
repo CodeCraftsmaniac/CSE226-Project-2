@@ -179,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 100),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.pageGutter, 18, AppSpacing.pageGutter, AppSpacing.bottomSafePad),
             child: buildContent(context),
           ),
         ],
