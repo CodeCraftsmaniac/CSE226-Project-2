@@ -1,7 +1,7 @@
 """Pydantic schemas for request/response validation."""
 from app.schemas.common import BaseResponse, ErrorResponse, PaginatedResponse
 from app.schemas.upload import UploadResponse, OCRResult, CourseData
-from app.schemas.auth import LoginRequest, SignupRequest, TokenResponse, UserInfo
+from app.schemas.auth import AuthTokenResponse, AuthUserInfo
 
 __all__ = [
     "BaseResponse",
@@ -10,8 +10,6 @@ __all__ = [
     "UploadResponse",
     "OCRResult",
     "CourseData",
-    "LoginRequest",
-    "SignupRequest",
-    "TokenResponse",
-    "UserInfo",
+    "AuthTokenResponse",
+    "AuthUserInfo",
 ]

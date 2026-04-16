@@ -24,10 +24,11 @@ try:
     SUPABASE_SERVICE_ROLE_KEY = _settings.SUPABASE_SERVICE_ROLE_KEY
     logger.info("Database module: Loaded settings from config")
 except Exception as e:
-    # Fail with clear error message - no hardcoded fallbacks
-    logger.critical(f"Database module: Failed to load settings: {e}")
-    logger.critical("Ensure all required environment variables are set (see .env.example)")
-    raise RuntimeError(f"Missing required configuration: {e}")
+    # Graceful fallback to environment variables (matches auth.py pattern)
+    logger.warning(f"Database module: Could not load from config ({e}), using env vars")
+    SUPABASE_URL = os.getenv('SUPABASE_URL', '')
+    SUPABASE_KEY = os.getenv('SUPABASE_KEY', os.getenv('SUPABASE_ANON_KEY', ''))
+    SUPABASE_SERVICE_ROLE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY', '')
 
 # Thread-safe client management for concurrent users
 _supabase_client = None
@@ -380,12 +381,33 @@ def delete_device_code(device_code: str) -> bool:
 
 
 def consume_device_code(device_code: str) -> Optional[Dict[str, Any]]:
-    """Fetch and delete a device-code record in a best-effort one-time-use flow."""
-    record = get_device_code(device_code)
-    if not record:
+    """Atomically fetch and delete a device-code record.
+
+    Uses a single Supabase ``delete`` call which returns the deleted rows,
+    making the consume operation atomic and preventing race conditions
+    where two concurrent polls could both read the same code before
+    either deletes it.
+    """
+    supabase = get_supabase()
+    if not supabase:
         return None
-    delete_device_code(device_code)
-    return record
+
+    code = (device_code or '').strip().upper()
+    if not code:
+        return None
+
+    try:
+        # delete() returns the deleted rows — atomic read-and-remove
+        result = supabase.table(DEVICE_CODES_TABLE).delete().eq(
+            'device_code', code,
+        ).eq('status', 'pending').execute()
+
+        if result.data:
+            return result.data[0]
+        return None
+    except Exception as e:
+        logger.debug(f"consume_device_code failed: {e}")
+        return None
 
 
 def cleanup_expired_device_codes(now: Any = None) -> int:

@@ -142,15 +142,14 @@ def root():
 
 
 
-# Load rate limiting
+# Load rate limiting — use the single Limiter instance from rate_limit.py
+# to avoid creating a second one that would shadow app.state.limiter
 try:
-    from slowapi import Limiter
-    from slowapi.util import get_remote_address
     from slowapi.errors import RateLimitExceeded
-    
-    limiter = Limiter(key_func=get_remote_address)
+    from app.middleware.rate_limit import limiter
+
     app.state.limiter = limiter
-    
+
     @app.exception_handler(RateLimitExceeded)
     async def rate_limit_handler(request, exc):
         return JSONResponse(
@@ -230,12 +229,22 @@ class ConnectionManager:
         self._cleanup_stale_jobs()
     
     def _cleanup_stale_jobs(self):
-        """Remove progress data older than TTL to prevent memory leaks."""
+        """Remove progress data and stale WebSocket connections older than TTL to prevent memory leaks."""
         cutoff = _time.monotonic() - self._PROGRESS_TTL
         stale = [jid for jid, ts in self.progress_timestamps.items() if ts < cutoff]
         for jid in stale:
             self.progress_data.pop(jid, None)
             self.progress_timestamps.pop(jid, None)
+            # Close and remove stale WebSocket connections for this job
+            if jid in self.active_connections:
+                for conn in self.active_connections[jid]:
+                    try:
+                        # Best-effort close — the client may have already disconnected
+                        import asyncio
+                        asyncio.get_event_loop().create_task(conn.close())
+                    except Exception:
+                        pass
+                del self.active_connections[jid]
     
     def clear_job(self, job_id: str):
         """Clear job data after completion."""

@@ -4,7 +4,6 @@ Upload & OCR Endpoints
 Handle transcript file uploads and OCR processing.
 FastAPI upload and OCR endpoints.
 """
-import sys
 import csv
 import os
 import time
@@ -39,11 +38,6 @@ def get_settings_safe():
                 MAX_UPLOAD_SIZE_MB = 16
             _settings = MinimalSettings()
     return _settings
-
-# Add backend directory for local imports
-backend_path = str(Path(__file__).parent.parent.parent.parent)
-if backend_path not in sys.path:
-    sys.path.insert(0, backend_path)
 
 # Lazy import functions for OCR and analysis
 OCR_AVAILABLE = None
@@ -596,6 +590,8 @@ async def upload_transcript(
                     'raw_text_count': len(ocr_result.raw_text),
                     'student_name': ocr_result.student_name,
                     'student_id': ocr_result.student_id,
+                    'cgpa_from_pdf': getattr(ocr_result, 'cgpa', 0),
+                    'total_credits_from_pdf': getattr(ocr_result, 'total_credits', 0),
                     'department_code': getattr(ocr_result, 'department_code', None),
                     'department_name': getattr(ocr_result, 'department_name', None),
                     'department_full_name': getattr(ocr_result, 'department_full_name', None),

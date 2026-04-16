@@ -2,6 +2,11 @@
 Main API Router
 ===============
 Aggregates all API routes from versioned modules.
+
+NOTE: Some routers are registered twice — once at the root path and once
+under /api — for backward compatibility with older clients.  This is
+intentional and should not be "cleaned up" until all consumers have
+migrated to the /api-prefixed paths.
 """
 from fastapi import APIRouter
 from app.api.v1 import health, upload, auth, history, analysis

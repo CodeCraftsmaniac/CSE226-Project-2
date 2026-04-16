@@ -6,7 +6,6 @@ Layer-by-layer health: Backend, Database, OCR engines.
 Lightweight /health/realtime excludes its own requests from counters.
 """
 import os
-import sys
 import time
 import platform
 import logging
@@ -79,9 +78,6 @@ def _check_db():
         return _cached_db_connected, _cached_db_latency
     
     try:
-        backend_path = str(Path(__file__).parent.parent.parent.parent)
-        if backend_path not in sys.path:
-            sys.path.insert(0, backend_path)
         from database import get_supabase
         supabase = get_supabase()
         if not supabase:
@@ -137,15 +133,22 @@ def _format_uptime(seconds):
 
 
 def _get_memory_mb():
-    """Get process memory usage in MB."""
+    """Get process memory usage in MB (cross-platform)."""
+    # Try psutil first — works on Linux, macOS, and Windows
+    try:
+        import psutil
+        return round(psutil.Process().memory_info().rss / (1024 * 1024), 1)
+    except ImportError:
+        pass
+    # Linux: resource module
     try:
         import resource
         usage = resource.getrusage(resource.RUSAGE_SELF)
-        return round(usage.ru_maxrss / 1024, 1)  # Linux: KB -> MB
+        return round(usage.ru_maxrss / 1024, 1)  # KB -> MB
     except Exception:
         pass
+    # Linux fallback: /proc/self/status
     try:
-        # Fallback: read /proc/self/status
         with open('/proc/self/status', 'r') as f:
             for line in f:
                 if line.startswith('VmRSS:'):

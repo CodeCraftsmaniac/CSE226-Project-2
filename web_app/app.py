@@ -10,7 +10,7 @@ The JavaScript (app.js) calls https://ocrapi.nsunexus.app directly.
 import os
 import logging
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
@@ -29,13 +29,22 @@ app = FastAPI(
     redoc_url=None
 )
 
-# CORS
+# CORS — explicit origin allowlist (no wildcard) for tighter security
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "").split(",") if os.getenv("CORS_ORIGINS") else [
+    "https://ocr.nsunexus.app",
+    "https://ocrapi.nsunexus.app",
+    "http://localhost:3000",
+    "http://localhost:5000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5000",
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
 )
 
 # Configure logging
@@ -162,7 +171,7 @@ async def health():
         'type': 'frontend',
         'framework': 'FastAPI',
         'backend': 'https://ocrapi.nsunexus.app',
-        'timestamp': datetime.utcnow().isoformat(),
+        'timestamp': datetime.now(timezone.utc).isoformat(),
         'version': '2.3.0'
     }
 

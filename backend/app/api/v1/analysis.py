@@ -4,9 +4,7 @@ Analysis Endpoints
 Degree audit analysis retrieval.
 FastAPI analysis endpoints.
 """
-import sys
 import logging
-from pathlib import Path
 from typing import Optional, Dict, Any
 
 from fastapi import APIRouter, HTTPException, Request, Header
@@ -16,11 +14,6 @@ from app.middleware.rate_limit import limiter
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
-
-# Add backend directory for local imports
-backend_path = str(Path(__file__).parent.parent.parent.parent)
-if backend_path not in sys.path:
-    sys.path.insert(0, backend_path)
 
 
 # Lazy loading functions
@@ -137,6 +130,10 @@ async def get_latest_analysis(
             logger.error(f"Failed to parse analysis_data for scan {scan['id']}")
             analysis_data = {}
     
+    # Determine required credits from curriculum data (not hardcoded)
+    curriculum = analysis_data.get('curriculum', {})
+    required_credits = curriculum.get('total_credits', 130)
+
     # Build response with all necessary fields
     analysis = {
         'id': scan['id'],
@@ -148,12 +145,14 @@ async def get_latest_analysis(
         'total_courses': scan.get('total_courses', 0),
         'total_credits': float(scan.get('total_credits', 0)),
         'earned_credits': float(scan.get('total_credits', 0)),  # Alias
-        'remaining_credits': max(0, 130 - float(scan.get('total_credits', 0))),
-        'graduation_progress': min(1.0, float(scan.get('total_credits', 0)) / 130),
+        'required_credits': required_credits,
+        'remaining_credits': max(0, required_credits - float(scan.get('total_credits', 0))),
+        'graduation_progress': min(1.0, float(scan.get('total_credits', 0)) / required_credits) if required_credits > 0 else 0,
         'courses': analysis_data.get('courses', []),
         'level_1': analysis_data.get('level_1', {}),
         'level_2': analysis_data.get('level_2', {}),
         'level_3': analysis_data.get('level_3', {}),
+        'curriculum': curriculum,
         'summary': analysis_data.get('summary', ''),
         'created_at': scan['created_at'],
         'source': scan.get('source', 'web'),

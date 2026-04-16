@@ -4,9 +4,7 @@ History Endpoints
 User audit history management.
 FastAPI history endpoints.
 """
-import sys
 import logging
-from pathlib import Path
 from typing import Optional, Dict, Any, List
 
 from fastapi import APIRouter, HTTPException, Request, Query, Depends, Header
@@ -16,11 +14,6 @@ from app.middleware.rate_limit import limiter
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
-
-# Add backend directory for local imports
-backend_path = str(Path(__file__).parent.parent.parent.parent)
-if backend_path not in sys.path:
-    sys.path.insert(0, backend_path)
 
 
 # Lazy loading functions

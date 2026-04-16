@@ -5,18 +5,11 @@ Common dependencies for FastAPI dependency injection.
 Integrates with existing auth.py module for token verification.
 """
 import os
-import sys
 import logging
 from typing import Optional, Dict, Any
-from pathlib import Path
 from fastapi import Header, HTTPException, Depends
 
 from app.config import get_settings
-
-# Add backend directory for importing existing modules
-backend_path = str(Path(__file__).parent.parent)
-if backend_path not in sys.path:
-    sys.path.insert(0, backend_path)
 
 settings = get_settings()
 logger = logging.getLogger(__name__)
@@ -202,3 +195,116 @@ def require_auth_module():
             detail="Authentication module not available"
         )
     return True
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Consolidated Lazy-Loading Helpers
+# ═══════════════════════════════════════════════════════════════════════════════
+# Previously each endpoint module defined its own get_dependencies(),
+# get_db_functions(), and get_settings_safe(). These are now centralized here.
+
+_settings_cache = None
+
+def get_settings_safe():
+    """Get settings with fallback for missing config."""
+    global _settings_cache
+    if _settings_cache is None:
+        try:
+            from app.config import get_settings
+            _settings_cache = get_settings()
+        except Exception as e:
+            logger.warning(f"Could not load settings: {e}")
+            class MinimalSettings:
+                MAX_UPLOAD_SIZE_MB = 16
+                SUPABASE_URL = os.getenv('SUPABASE_URL', '')
+                SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY', '')
+                GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '')
+                JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', '')
+            _settings_cache = MinimalSettings()
+    return _settings_cache
+
+
+def get_shared_db_functions():
+    """Lazy load common database functions.
+
+    Returns (save_scan, get_user_by_email, create_user, get_user_by_id,
+             get_user_stats, get_supabase) or Nones if unavailable.
+    """
+    try:
+        from database import (
+            save_scan, get_user_by_email, create_user, get_user_by_id,
+            get_user_stats, get_supabase,
+        )
+        return save_scan, get_user_by_email, create_user, get_user_by_id, get_user_stats, get_supabase
+    except Exception:
+        return None, None, None, None, None, None
+
+
+def get_shared_history_db_functions():
+    """Lazy load history-specific database functions.
+
+    Returns (get_user_scans, get_scan_by_id, delete_scan, get_user_by_email)
+    or Nones if unavailable.
+    """
+    try:
+        from database import (
+            get_user_scans, get_scan_by_id, delete_scan, get_user_by_email,
+        )
+        return get_user_scans, get_scan_by_id, delete_scan, get_user_by_email
+    except Exception:
+        return None, None, None, None
+
+
+def get_shared_auth_functions():
+    """Lazy load auth configuration functions.
+
+    Returns (get_auth_config, SUPABASE_SERVICE_ROLE_KEY) or (None, None).
+    """
+    try:
+        from auth import get_auth_config as _get_auth_config, SUPABASE_SERVICE_ROLE_KEY
+        return _get_auth_config, SUPABASE_SERVICE_ROLE_KEY
+    except Exception:
+        return None, None
+
+
+def get_shared_ocr_engine():
+    """Lazy load OCR engine class.
+
+    Returns (available: bool, OCRClass or None).
+    """
+    try:
+        from ocr_web import WebOCR as _TranscriptOCR
+        return True, _TranscriptOCR
+    except Exception:
+        try:
+            from ocr_engine import TranscriptOCR as _TranscriptOCR
+            return True, _TranscriptOCR
+        except Exception:
+            return False, None
+
+
+def get_shared_analysis_engine():
+    """Lazy load analysis engine.
+
+    Returns (available: bool, run_full_analysis or None).
+    """
+    try:
+        from core import run_full_analysis as _run_full_analysis
+        return True, _run_full_analysis
+    except Exception:
+        return False, None
+
+
+async def require_auth(authorization: Optional[str] = None):
+    """Require authentication from Authorization header value.
+
+    Convenience wrapper used by history and analysis endpoints.
+    """
+    user = await get_current_user_optional(authorization)
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user

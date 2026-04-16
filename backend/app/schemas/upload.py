@@ -94,7 +94,13 @@ class AuditResult(BaseModel):
 
 
 class UploadResponse(BaseModel):
-    """Response from file upload endpoint."""
+    """Response from file upload endpoint (schema-level definition).
+
+    NOTE: The upload endpoint in app.api.v1.upload defines its own
+    UploadResponse inline with different fields (data, error, job_id).
+    This schema-level model is kept for external consumers that need
+    the structured audit_result breakdown.
+    """
     success: bool = True
     message: Optional[str] = None
     filename: Optional[str] = None
@@ -103,6 +109,6 @@ class UploadResponse(BaseModel):
     ocr_result: Optional[OCRResult] = None
     audit_result: Optional[AuditResult] = None
     audit_id: Optional[str] = Field(None, description="ID of saved audit record")
-    
+
     class Config:
         from_attributes = True

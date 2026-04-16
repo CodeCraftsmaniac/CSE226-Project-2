@@ -79,3 +79,10 @@ tests/reports/*.csv
 # CLI auth tokens (local)
 .nsu_audit_cli_token.json
 node_modules/
+
+# Pytest cache directories
+pytest-cache-files-*/
+backend/pytest-cache-files-*/
+
+# Google OAuth client secrets (should never be committed)
+client_secret_*.json

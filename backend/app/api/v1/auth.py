@@ -11,7 +11,6 @@ import secrets
 import string
 import logging
 import threading
-from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 
@@ -22,11 +21,6 @@ from app.middleware.rate_limit import limiter
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
-
-# Add backend directory for local imports
-backend_path = str(Path(__file__).parent.parent.parent.parent)
-if backend_path not in sys.path:
-    sys.path.insert(0, backend_path)
 
 # Lazy settings loading
 _settings = None
