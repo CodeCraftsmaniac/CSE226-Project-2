@@ -179,11 +179,14 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                // Get device code from URL
+                // Get device code: prefer URL param, fall back to sessionStorage
+                // (sessionStorage survives the OAuth redirect round-trip)
                 const urlParams = new URLSearchParams(window.location.search);
-                deviceCode = urlParams.get('code');
+                deviceCode = urlParams.get('code') || sessionStorage.getItem('cli_device_code');
                 
                 if (deviceCode) {
+                    // Persist for the OAuth redirect round-trip
+                    sessionStorage.setItem('cli_device_code', deviceCode);
                     const formattedCode = deviceCode.length === 8 
                         ? `${deviceCode.slice(0, 4)}-${deviceCode.slice(4)}`
                         : deviceCode;
@@ -229,10 +232,14 @@
             // Sign out first to force account selection (prevents auto-login)
             await supabaseClient.auth.signOut();
             
+            // Use a CLEAN redirect URL (no query params) so Supabase can
+            // whitelist it.  The device code is already in sessionStorage.
+            const cleanRedirectUrl = window.location.origin + '/cli-auth';
+
             const { error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.href,
+                    redirectTo: cleanRedirectUrl,
                     queryParams: {
                         access_type: 'offline',
                         prompt: 'select_account'
@@ -267,6 +274,7 @@
                 const data = await response.json();
                 
                 if (data.success) {
+                    sessionStorage.removeItem('cli_device_code');
                     showStep('step-success');
                     // Auto-close after 5 seconds
                     setTimeout(() => window.close(), 5000);
