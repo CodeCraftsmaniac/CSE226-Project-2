@@ -6,6 +6,7 @@ Integrates with existing auth.py module for token verification.
 """
 import os
 import logging
+import asyncio
 from typing import Optional, Dict, Any
 from fastapi import Header, HTTPException, Depends
 
@@ -117,15 +118,15 @@ async def get_current_user_optional(
         return None
     
     # Try Supabase token verification first (web app Google OAuth)
-    user = verify_supabase_token(token)
+    user = await asyncio.to_thread(verify_supabase_token, token)
     if user:
         # Sync user to our database
         if DB_MODULE_AVAILABLE:
-            sync_user_to_db(user)
+            await asyncio.to_thread(sync_user_to_db, user)
         return user
     
     # Try CLI token verification (from /auth/google endpoint)
-    user = verify_cli_token(token)
+    user = await asyncio.to_thread(verify_cli_token, token)
     if user:
         return user
     
@@ -161,16 +162,19 @@ async def get_db_user_id(user: Dict[str, Any]) -> Optional[str]:
     if db_user_id:
         return db_user_id
     
-    # Try to get from database by email
+    # Try to get from database by email (offload to thread pool)
     if DB_MODULE_AVAILABLE and user.get('email'):
-        db_user = get_user_by_email(user['email'])
-        if not db_user:
-            # Create user in database if doesn't exist
-            db_user = create_user(
-                email=user['email'],
-                name=user.get('name', ''),
-                provider=user.get('provider', 'google')
-            )
+        def _lookup_or_create():
+            db_user = get_user_by_email(user['email'])
+            if not db_user:
+                db_user = create_user(
+                    email=user['email'],
+                    name=user.get('name', ''),
+                    provider=user.get('provider', 'google')
+                )
+            return db_user
+        
+        db_user = await asyncio.to_thread(_lookup_or_create)
         if db_user:
             return db_user['id']
     

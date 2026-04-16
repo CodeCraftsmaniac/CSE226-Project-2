@@ -10,6 +10,7 @@ import time
 import secrets
 import string
 import logging
+import asyncio
 import threading
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
@@ -496,11 +497,18 @@ async def get_user_info(
     user = await get_current_user(authorization)
     
     # Get or create db_id for history queries
-    db_user_id = await get_db_user_id(user)
+    db_user_id = None
+    try:
+        db_user_id = await get_db_user_id(user)
+    except Exception as e:
+        logger.warning(f"Failed to get/create db user: {e}")
     
     stats = {}
     if DB_MODULE_AVAILABLE and db_user_id and get_user_stats:
-        stats = get_user_stats(db_user_id)
+        try:
+            stats = await asyncio.to_thread(get_user_stats, db_user_id)
+        except Exception as e:
+            logger.warning(f"Failed to get user stats: {e}")
     
     return UserResponse(
         user={
@@ -730,11 +738,19 @@ async def get_current_user_me(
     _, _, _, get_user_stats, _ = get_db_functions()
     
     user = await get_current_user(authorization)
-    db_user_id = await get_db_user_id(user)
+    
+    db_user_id = None
+    try:
+        db_user_id = await get_db_user_id(user)
+    except Exception as e:
+        logger.warning(f"Failed to get/create db user: {e}")
     
     stats = {}
     if DB_MODULE_AVAILABLE and db_user_id and get_user_stats:
-        stats = get_user_stats(db_user_id)
+        try:
+            stats = await asyncio.to_thread(get_user_stats, db_user_id)
+        except Exception as e:
+            logger.warning(f"Failed to get user stats: {e}")
     
     return {
         "success": True,
