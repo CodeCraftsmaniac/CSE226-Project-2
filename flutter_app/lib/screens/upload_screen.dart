@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../design/app_design.dart';
 import '../services/api_service.dart';
 import '../services/analysis_session_service.dart';
 import '../widgets/glass_widgets.dart';
@@ -126,13 +127,11 @@ class _UploadScreenState extends State<UploadScreen>
 
     try {
       // Ensure filename has extension
-      final ext = fileName.contains('.') 
-        ? fileName.split('.').last.toLowerCase()
-        : 'pdf';
-      final safeFileName = fileName.contains('.') 
-        ? fileName 
-        : '$fileName.$ext';
-      
+      final ext = fileName.contains('.')
+          ? fileName.split('.').last.toLowerCase()
+          : 'pdf';
+      final safeFileName = fileName.contains('.') ? fileName : '$fileName.$ext';
+
       final response = await apiService.uploadFile(
         safeFileName,
         filePath: filePath,
@@ -157,11 +156,12 @@ class _UploadScreenState extends State<UploadScreen>
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
               ProcessingScreen(
-                jobId: jobId,
-                fileName: safeFileName,
-                analysisData: analysisData,
-              ),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) => SlideTransition(
+            jobId: jobId,
+            fileName: safeFileName,
+            analysisData: analysisData,
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+              SlideTransition(
             position: Tween<Offset>(
               begin: const Offset(0, 1.0),
               end: Offset.zero,
@@ -210,7 +210,8 @@ class _UploadScreenState extends State<UploadScreen>
 
         // ── Content ──
         SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.pageGutter, 8, AppSpacing.pageGutter, AppSpacing.bottomSafePad),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.pageGutter, 8,
+              AppSpacing.pageGutter, AppSpacing.bottomSafePad),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -240,10 +241,7 @@ class _UploadScreenState extends State<UploadScreen>
                 isUploading: _isUploading,
                 pulseCtrl: _pulseCtrl,
                 onTap: _isUploading ? null : _pickFile,
-              )
-                  .animate()
-                  .fadeIn(delay: 100.ms, duration: 500.ms)
-                  .scale(
+              ).animate().fadeIn(delay: 100.ms, duration: 500.ms).scale(
                     begin: const Offset(0.96, 0.96),
                     end: const Offset(1.0, 1.0),
                     delay: 100.ms,
@@ -308,20 +306,11 @@ class _UploadScreenState extends State<UploadScreen>
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Upload Transcript',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: kTextPrimary,
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-                Text(
-                  'PDF, image, or CSV • backend-powered OCR',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: kTextSecondary),
-                ),
+                Text('Upload Transcript',
+                    style: AppText.title3(color: kTextPrimary)
+                        .copyWith(fontWeight: FontWeight.w800)),
+                Text('PDF, image, or CSV • backend-powered OCR',
+                    style: AppText.footnote(color: kTextSecondary)),
               ],
             ),
           ],
@@ -380,13 +369,9 @@ class _UploadScreenState extends State<UploadScreen>
               const Icon(Icons.insert_drive_file_outlined,
                   color: kPrimary, size: 20),
               const SizedBox(width: 10),
-              Text(
-                'Supported Formats',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: kTextPrimary,
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
+              Text('Supported Formats',
+                  style: AppText.callout(color: kTextPrimary)
+                      .copyWith(fontWeight: FontWeight.w700)),
             ],
           ),
           const SizedBox(height: 14),
@@ -395,13 +380,19 @@ class _UploadScreenState extends State<UploadScreen>
             runSpacing: 10,
             children: const [
               _FormatChip(
-                  label: 'PDF', icon: Icons.picture_as_pdf_rounded, color: kError),
+                  label: 'PDF',
+                  icon: Icons.picture_as_pdf_rounded,
+                  color: kError),
               _FormatChip(
-                  label: 'JPG/JPEG', icon: Icons.image_rounded, color: kPrimary),
+                  label: 'JPG/JPEG',
+                  icon: Icons.image_rounded,
+                  color: kPrimary),
               _FormatChip(
                   label: 'PNG', icon: Icons.image_rounded, color: kSuccess),
               _FormatChip(
-                  label: 'CSV', icon: Icons.table_chart_rounded, color: kWarning),
+                  label: 'CSV',
+                  icon: Icons.table_chart_rounded,
+                  color: kWarning),
             ],
           ),
           const SizedBox(height: 12),
@@ -429,10 +420,22 @@ class _UploadScreenState extends State<UploadScreen>
 
   Widget _buildTipsCard() {
     const tips = [
-      (Icons.check_circle_outline_rounded, 'Use the official NSU transcript PDF for best accuracy'),
-      (Icons.check_circle_outline_rounded, 'Ensure the image is well-lit and not blurry'),
-      (Icons.check_circle_outline_rounded, 'Make sure all pages of your transcript are included'),
-      (Icons.check_circle_outline_rounded, 'Avoid cropping or editing the transcript file'),
+      (
+        Icons.check_circle_outline_rounded,
+        'Use the official NSU transcript PDF for best accuracy'
+      ),
+      (
+        Icons.check_circle_outline_rounded,
+        'Ensure the image is well-lit and not blurry'
+      ),
+      (
+        Icons.check_circle_outline_rounded,
+        'Make sure all pages of your transcript are included'
+      ),
+      (
+        Icons.check_circle_outline_rounded,
+        'Avoid cropping or editing the transcript file'
+      ),
     ];
 
     return GlassCard(
@@ -444,13 +447,9 @@ class _UploadScreenState extends State<UploadScreen>
               const Icon(Icons.lightbulb_outline_rounded,
                   color: kWarning, size: 20),
               const SizedBox(width: 10),
-              Text(
-                'Tips for Best Results',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: kTextPrimary,
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
+              Text('Tips for Best Results',
+                  style: AppText.callout(color: kTextPrimary)
+                      .copyWith(fontWeight: FontWeight.w700)),
             ],
           ),
           const SizedBox(height: 14),
@@ -463,13 +462,9 @@ class _UploadScreenState extends State<UploadScreen>
                   Icon(t.$1, size: 16, color: kSuccess),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
-                      t.$2,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(color: kTextSecondary, height: 1.4),
-                    ),
+                    child: Text(t.$2,
+                        style: AppText.footnote(color: kTextSecondary)
+                            .copyWith(height: 1.4)),
                   ),
                 ],
               ),
@@ -508,15 +503,15 @@ class _DropZone extends StatelessWidget {
         animation: pulseCtrl,
         builder: (context, child) {
           return ClipRRect(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(AppRadius.xl),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
+                duration: AppDurations.base,
                 width: double.infinity,
                 height: 220,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(AppRadius.xl),
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -526,21 +521,22 @@ class _DropZone extends StatelessWidget {
                             kSuccess.withValues(alpha: 0.08),
                           ]
                         : [
-                            kPrimary.withValues(alpha: 
-                                0.08 + 0.04 * pulseCtrl.value),
+                            kPrimary.withValues(
+                                alpha: 0.08 + 0.04 * pulseCtrl.value),
                             Colors.white.withValues(alpha: 0.03),
                           ],
                   ),
                   border: Border.all(
-                    color: accent.withValues(alpha: 
-                        isDragOver ? 0.70 : 0.30 + 0.15 * pulseCtrl.value),
+                    color: accent.withValues(
+                        alpha:
+                            isDragOver ? 0.70 : 0.30 + 0.15 * pulseCtrl.value),
                     width: isDragOver ? 2.5 : 1.5,
                     strokeAlign: BorderSide.strokeAlignInside,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: accent.withValues(alpha: 
-                          0.10 + 0.08 * pulseCtrl.value),
+                      color: accent.withValues(
+                          alpha: 0.10 + 0.08 * pulseCtrl.value),
                       blurRadius: 30,
                       offset: const Offset(0, 6),
                     ),
@@ -602,23 +598,12 @@ class _DropZone extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        Text(
-          isDragOver ? 'Drop to upload' : 'Tap to upload transcript',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: kTextPrimary,
-                fontWeight: FontWeight.w700,
-              ),
-        ),
-
+        Text(isDragOver ? 'Drop to upload' : 'Tap to upload transcript',
+            style: AppText.callout(color: kTextPrimary)
+                .copyWith(fontWeight: FontWeight.w700)),
         const SizedBox(height: 6),
-
-        Text(
-          'PDF, JPG, PNG, or CSV • Up to 16 MB',
-          style: Theme.of(context)
-              .textTheme
-              .bodySmall
-              ?.copyWith(color: kTextTertiary),
-        ),
+        Text('PDF, JPG, PNG, or CSV • Up to 16 MB',
+            style: AppText.footnote(color: kTextTertiary)),
 
         const SizedBox(height: 16),
 
@@ -626,7 +611,7 @@ class _DropZone extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
           decoration: BoxDecoration(
             color: accent.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
             border: Border.all(color: accent.withValues(alpha: 0.30), width: 1),
           ),
           child: Row(
@@ -634,15 +619,9 @@ class _DropZone extends StatelessWidget {
             children: [
               Icon(Icons.add_rounded, color: accent, size: 16),
               const SizedBox(width: 6),
-              Text(
-                'Choose file',
-                style: TextStyle(
-                  color: accent,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: 'Outfit',
-                ),
-              ),
+              Text('Choose file',
+                  style: AppText.subheadline(color: accent)
+                      .copyWith(fontWeight: FontWeight.w700)),
             ],
           ),
         ),
@@ -664,21 +643,12 @@ class _DropZone extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-        Text(
-          'Uploading transcript…',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: kTextPrimary,
-                fontWeight: FontWeight.w700,
-              ),
-        ),
+        Text('Uploading transcript…',
+            style: AppText.callout(color: kTextPrimary)
+                .copyWith(fontWeight: FontWeight.w700)),
         const SizedBox(height: 6),
-        Text(
-          'Sending to OCR engine. Please wait.',
-          style: Theme.of(context)
-              .textTheme
-              .bodySmall
-              ?.copyWith(color: kTextTertiary),
-        ),
+        Text('Sending to OCR engine. Please wait.',
+            style: AppText.footnote(color: kTextTertiary)),
       ],
     );
   }
@@ -725,19 +695,19 @@ class _SourceButtonState extends State<_SourceButton> {
       onTapCancel: enabled ? () => setState(() => _pressed = false) : null,
       child: AnimatedScale(
         scale: _pressed ? 0.94 : 1.0,
-        duration: const Duration(milliseconds: 100),
+        duration: AppDurations.fast,
         child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 200),
+          duration: AppDurations.base,
           opacity: enabled ? 1.0 : 0.4,
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -759,35 +729,18 @@ class _SourceButtonState extends State<_SourceButton> {
                       height: 44,
                       decoration: BoxDecoration(
                         color: widget.accent.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
-                      child: Icon(widget.icon,
-                          color: widget.accent, size: 22),
+                      child: Icon(widget.icon, color: widget.accent, size: 22),
                     ),
                     const SizedBox(height: 10),
-                    Text(
-                      widget.label,
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelLarge
-                          ?.copyWith(
-                            color: kTextPrimary,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                          ),
-                    ),
+                    Text(widget.label,
+                        style: AppText.subheadline(color: kTextPrimary)
+                            .copyWith(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 2),
-                    Text(
-                      widget.subtitle,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(
-                            color: kTextTertiary,
-                            fontSize: 10,
-                          ),
-                    ),
+                    Text(widget.subtitle,
+                        textAlign: TextAlign.center,
+                        style: AppText.caption(color: kTextTertiary)),
                   ],
                 ),
               ),
@@ -820,7 +773,7 @@ class _FormatChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppRadius.xs),
         border: Border.all(color: color.withValues(alpha: 0.28), width: 1),
       ),
       child: Row(
@@ -828,15 +781,9 @@ class _FormatChip extends StatelessWidget {
         children: [
           Icon(icon, size: 15, color: color),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              color: kTextPrimary,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              fontFamily: 'Outfit',
-            ),
-          ),
+          Text(label,
+              style: AppText.caption(color: kTextPrimary)
+                  .copyWith(fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -860,7 +807,7 @@ class _ErrorBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: kError.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         border: Border.all(color: kError.withValues(alpha: 0.30), width: 1),
       ),
       child: Row(
@@ -868,20 +815,14 @@ class _ErrorBanner extends StatelessWidget {
           const Icon(Icons.error_outline_rounded, color: kError, size: 18),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              message,
-              style: const TextStyle(
-                color: kError,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                fontFamily: 'Outfit',
-              ),
-            ),
+            child: Text(message,
+                style: AppText.subheadline(color: kError)
+                    .copyWith(fontWeight: FontWeight.w500)),
           ),
           GestureDetector(
             onTap: onDismiss,
-            child: const Icon(Icons.close_rounded,
-                color: kTextTertiary, size: 18),
+            child:
+                const Icon(Icons.close_rounded, color: kTextTertiary, size: 18),
           ),
         ],
       ),

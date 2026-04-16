@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../design/app_design.dart';
 import '../widgets/glass_widgets.dart';
 import 'auth_screen.dart';
 
@@ -21,7 +22,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       icon: Icons.document_scanner_rounded,
       iconColor: const Color(0xFF38BDF8),
       title: 'Smart Transcript Analysis',
-      subtitle: 'Upload your NSU transcript PDF or photo and let our AI-powered OCR engine extract all your course data instantly.',
+      subtitle:
+          'Upload your NSU transcript PDF or photo and let our AI-powered OCR engine extract all your course data instantly.',
       features: [
         OnboardingFeature(icon: Icons.auto_awesome, label: 'AI-powered OCR'),
         OnboardingFeature(icon: Icons.flash_on, label: 'Instant extraction'),
@@ -32,7 +34,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       icon: Icons.insights_rounded,
       iconColor: const Color(0xFF80FFBD),
       title: 'Complete Degree Audit',
-      subtitle: 'Get a comprehensive 3-level analysis: credit tally, CGPA calculation with waiver eligibility, and graduation readiness check.',
+      subtitle:
+          'Get a comprehensive 3-level analysis: credit tally, CGPA calculation with waiver eligibility, and graduation readiness check.',
       features: [
         OnboardingFeature(icon: Icons.calculate, label: 'CGPA analysis'),
         OnboardingFeature(icon: Icons.card_giftcard, label: 'Waiver check'),
@@ -50,7 +53,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     // Navigate to auth screen after onboarding
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const AuthScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const AuthScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -100,17 +104,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   // Header with skip button
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    padding: const EdgeInsets.fromLTRB(AppSpacing.pageGutter,
+                        AppSpacing.md, AppSpacing.pageGutter, 0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         // Logo badge
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 8),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.06),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                            borderRadius: BorderRadius.circular(AppRadius.lg),
+                            border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.08)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -119,12 +126,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 width: 24,
                                 height: 24,
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.xs),
                                   gradient: const LinearGradient(
-                                    colors: [Color(0xFF38BDF8), Color(0xFF0052CC)],
+                                    colors: [
+                                      Color(0xFF38BDF8),
+                                      Color(0xFF0052CC)
+                                    ],
                                   ),
                                 ),
-                                child: const Icon(Icons.account_balance, size: 14, color: Colors.white),
+                                child: const Icon(Icons.account_balance,
+                                    size: 14, color: Colors.white),
                               ),
                               const SizedBox(width: 8),
                               Text(
@@ -154,7 +166,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Expanded(
                     child: PageView.builder(
                       controller: _pageController,
-                      onPageChanged: (index) => setState(() => _currentPage = index),
+                      onPageChanged: (index) =>
+                          setState(() => _currentPage = index),
                       itemCount: _pages.length,
                       itemBuilder: (context, index) {
                         final page = _pages[index];
@@ -184,7 +197,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               width: _currentPage == index ? 32 : 10,
                               height: 10,
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(999),
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.pill),
                                 color: _currentPage == index
                                     ? const Color(0xFF57C5FF)
                                     : Colors.white.withValues(alpha: 0.2),
@@ -203,8 +217,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             style: FilledButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    AppRadius.md),
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.md),
                               ),
                               backgroundColor: AppColors.primary,
                             ),
@@ -334,8 +348,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(AppRadius.pill),
-                  border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.08)),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.08)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

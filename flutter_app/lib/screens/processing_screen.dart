@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../design/app_design.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
@@ -47,36 +48,36 @@ class _ProcessingScreenState extends State<ProcessingScreen>
 
   // ── Stage icon map ──
   static const _stageIcons = <String, IconData>{
-    'connecting':    Icons.wifi_rounded,
-    'uploading':     Icons.cloud_upload_outlined,
-    'upload':        Icons.cloud_upload_outlined,
-    'ocr':           Icons.document_scanner_rounded,
-    'parse':         Icons.integration_instructions_outlined,
-    'parsing':       Icons.integration_instructions_outlined,
-    'analyze':       Icons.analytics_outlined,
-    'analysis':      Icons.analytics_outlined,
-    'analyzing':     Icons.analytics_outlined,
-    'complete':      Icons.check_circle_rounded,
-    'done':          Icons.check_circle_rounded,
-    'error':         Icons.error_outline_rounded,
-    'failed':        Icons.error_outline_rounded,
+    'connecting': Icons.wifi_rounded,
+    'uploading': Icons.cloud_upload_outlined,
+    'upload': Icons.cloud_upload_outlined,
+    'ocr': Icons.document_scanner_rounded,
+    'parse': Icons.integration_instructions_outlined,
+    'parsing': Icons.integration_instructions_outlined,
+    'analyze': Icons.analytics_outlined,
+    'analysis': Icons.analytics_outlined,
+    'analyzing': Icons.analytics_outlined,
+    'complete': Icons.check_circle_rounded,
+    'done': Icons.check_circle_rounded,
+    'error': Icons.error_outline_rounded,
+    'failed': Icons.error_outline_rounded,
   };
 
   // ── Friendly stage labels ──
   static const _stageLabels = <String, String>{
-    'connecting':    'Connecting',
-    'uploading':     'Uploading',
-    'upload':        'Uploading File',
-    'ocr':           'Running OCR',
-    'parse':         'Parsing Transcript',
-    'parsing':       'Parsing Transcript',
-    'analyze':       'Analysing Degree',
-    'analysis':      'Analysing Degree',
-    'analyzing':     'Analysing Degree',
-    'complete':      'Complete!',
-    'done':          'Complete!',
-    'error':         'Error',
-    'failed':        'Failed',
+    'connecting': 'Connecting',
+    'uploading': 'Uploading',
+    'upload': 'Uploading File',
+    'ocr': 'Running OCR',
+    'parse': 'Parsing Transcript',
+    'parsing': 'Parsing Transcript',
+    'analyze': 'Analysing Degree',
+    'analysis': 'Analysing Degree',
+    'analyzing': 'Analysing Degree',
+    'complete': 'Complete!',
+    'done': 'Complete!',
+    'error': 'Error',
+    'failed': 'Failed',
   };
 
   @override
@@ -160,7 +161,7 @@ class _ProcessingScreenState extends State<ProcessingScreen>
 
     setState(() {
       _progress = p.progress.clamp(0.0, 1.0);
-      _stage   = _stageLabels[p.stage.toLowerCase()] ?? p.stage;
+      _stage = _stageLabels[p.stage.toLowerCase()] ?? p.stage;
       _message = p.message.isNotEmpty ? p.message : _stage;
 
       // Append to log (avoid duplicate consecutive entries)
@@ -168,24 +169,24 @@ class _ProcessingScreenState extends State<ProcessingScreen>
           _stageLog.last.stage != _stage ||
           _stageLog.last.message != _message) {
         _stageLog.add(_StageEntry(
-          stage:   _stage,
+          stage: _stage,
           message: _message,
-          icon:    _stageIcons[p.stage.toLowerCase()] ??
-                   Icons.radio_button_checked,
+          icon:
+              _stageIcons[p.stage.toLowerCase()] ?? Icons.radio_button_checked,
           isError: p.hasError,
-          time:    DateTime.now(),
+          time: DateTime.now(),
         ));
       }
 
       if (p.hasError) {
-        _hasError    = true;
+        _hasError = true;
         _errorMessage = p.error;
-        _progress    = 0.0;
+        _progress = 0.0;
       } else if (p.isDone) {
-        _isDone   = true;
+        _isDone = true;
         _progress = 1.0;
-        _stage    = 'Complete!';
-        _message  = 'Your transcript has been processed successfully.';
+        _stage = 'Complete!';
+        _message = 'Your transcript has been processed successfully.';
         _pulseCtrl.stop();
         // Auto-navigate after a short celebration delay
         Future.delayed(const Duration(seconds: 2), _navigateToDashboard);
@@ -196,10 +197,10 @@ class _ProcessingScreenState extends State<ProcessingScreen>
   void _onStreamError(Object error) {
     if (!mounted) return;
     setState(() {
-      _hasError     = true;
+      _hasError = true;
       _errorMessage = error.toString();
-      _stage        = 'Connection Error';
-      _message      = 'Lost connection to the processing server.';
+      _stage = 'Connection Error';
+      _message = 'Lost connection to the processing server.';
     });
   }
 
@@ -209,13 +210,13 @@ class _ProcessingScreenState extends State<ProcessingScreen>
     if (!_isDone && !_hasError) {
       setState(() {
         if (_progress >= 0.95) {
-          _isDone   = true;
+          _isDone = true;
           _progress = 1.0;
-          _stage    = 'Complete!';
-          _message  = 'Processing finished.';
+          _stage = 'Complete!';
+          _message = 'Processing finished.';
           Future.delayed(const Duration(seconds: 2), _navigateToDashboard);
         } else {
-          _hasError     = true;
+          _hasError = true;
           _errorMessage = 'Connection closed unexpectedly. Please try again.';
         }
       });
@@ -295,7 +296,8 @@ class _ProcessingScreenState extends State<ProcessingScreen>
                 // ── Scrollable body ──
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                    padding: const EdgeInsets.fromLTRB(AppSpacing.pageGutter,
+                        AppSpacing.sm, AppSpacing.pageGutter, AppSpacing.xl),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -400,10 +402,8 @@ class _ProcessingScreenState extends State<ProcessingScreen>
           // Title
           Text(
             'Processing',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: kTextPrimary,
-                  fontWeight: FontWeight.w700,
-                ),
+            style: AppText.headline(color: kTextPrimary)
+                .copyWith(fontWeight: FontWeight.w700),
           ),
 
           const Spacer(),
@@ -435,7 +435,8 @@ class _ProcessingScreenState extends State<ProcessingScreen>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      ringColor.withValues(alpha: 0.08 + 0.06 * _pulseAnim.value),
+                      ringColor.withValues(
+                          alpha: 0.08 + 0.06 * _pulseAnim.value),
                       Colors.transparent,
                     ],
                   ),
@@ -482,15 +483,9 @@ class _ProcessingScreenState extends State<ProcessingScreen>
           children: [
             const Icon(Icons.error_outline_rounded, color: kError, size: 36),
             const SizedBox(height: 6),
-            const Text(
-              'Error',
-              style: TextStyle(
-                color: kError,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                fontFamily: 'Outfit',
-              ),
-            ),
+            Text('Error',
+                style: AppText.subheadline(color: kError)
+                    .copyWith(fontWeight: FontWeight.w700)),
           ],
         ),
       );
@@ -509,15 +504,9 @@ class _ProcessingScreenState extends State<ProcessingScreen>
           children: [
             const Icon(Icons.check_circle_rounded, color: kSuccess, size: 40),
             const SizedBox(height: 6),
-            const Text(
-              'Done!',
-              style: TextStyle(
-                color: kSuccess,
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                fontFamily: 'Outfit',
-              ),
-            ),
+            Text('Done!',
+                style: AppText.callout(color: kSuccess)
+                    .copyWith(fontWeight: FontWeight.w800)),
           ],
         ),
       );
@@ -529,21 +518,13 @@ class _ProcessingScreenState extends State<ProcessingScreen>
       children: [
         Text(
           '${(_progress * 100).round()}%',
-          style: TextStyle(
-            color: accent,
-            fontSize: 28,
-            fontWeight: FontWeight.w800,
-            fontFamily: 'Outfit',
-          ),
+          style: AppText.largeTitle(color: accent)
+              .copyWith(fontWeight: FontWeight.w800, fontSize: 28),
         ),
         const SizedBox(height: 2),
         Text(
           'complete',
-          style: TextStyle(
-            color: kTextTertiary,
-            fontSize: 12,
-            fontFamily: 'Outfit',
-          ),
+          style: AppText.caption(color: kTextTertiary),
         ),
       ],
     );
@@ -573,12 +554,12 @@ class _ProcessingScreenState extends State<ProcessingScreen>
           ),
           child: Container(
             key: ValueKey(_stage),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
             decoration: BoxDecoration(
               color: accent.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: accent.withValues(alpha: 0.30), width: 1),
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              border:
+                  Border.all(color: accent.withValues(alpha: 0.30), width: 1),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -603,12 +584,8 @@ class _ProcessingScreenState extends State<ProcessingScreen>
                 const SizedBox(width: 8),
                 Text(
                   _stage,
-                  style: TextStyle(
-                    color: accent,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: 'Outfit',
-                  ),
+                  style: AppText.callout(color: accent)
+                      .copyWith(fontWeight: FontWeight.w700),
                 ),
               ],
             ),
@@ -624,10 +601,8 @@ class _ProcessingScreenState extends State<ProcessingScreen>
             _message,
             key: ValueKey(_message),
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: kTextSecondary,
-                  height: 1.5,
-                ),
+            style: AppText.subheadline(color: kTextSecondary)
+                .copyWith(height: 1.5),
           ),
         ),
       ],
@@ -644,7 +619,7 @@ class _ProcessingScreenState extends State<ProcessingScreen>
             height: 46,
             decoration: BoxDecoration(
               color: kPrimary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: const Icon(Icons.description_rounded,
                 color: kPrimary, size: 24),
@@ -656,28 +631,23 @@ class _ProcessingScreenState extends State<ProcessingScreen>
               children: [
                 Text(
                   widget.fileName,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: kTextPrimary,
-                        fontWeight: FontWeight.w700,
-                      ),
+                  style: AppText.callout(color: kTextPrimary)
+                      .copyWith(fontWeight: FontWeight.w700),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Job ID: ${widget.jobId.length > 12 ? widget.jobId.substring(0, 12) : widget.jobId}…',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: kTextTertiary, fontFamily: 'monospace'),
+                  style: AppText.footnote(color: kTextTertiary)
+                      .copyWith(fontFamily: 'monospace'),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 10),
           // Live dot
-          if (!_isDone && !_hasError)
-            _PulsingDot(color: kPrimary),
+          if (!_isDone && !_hasError) _PulsingDot(color: kPrimary),
           if (_isDone)
             const Icon(Icons.check_circle_rounded, color: kSuccess, size: 22),
           if (_hasError)
@@ -726,19 +696,15 @@ class _ProcessingScreenState extends State<ProcessingScreen>
           const SizedBox(height: 18),
           Text(
             'Transcript Processed!',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: kTextPrimary,
-                  fontWeight: FontWeight.w800,
-                ),
+            style: AppText.title3(color: kTextPrimary)
+                .copyWith(fontWeight: FontWeight.w800),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 10),
           Text(
             'Your transcript has been analysed on the backend. Redirecting to your results…',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: kTextSecondary,
-                  height: 1.5,
-                ),
+            style: AppText.subheadline(color: kTextSecondary)
+                .copyWith(height: 1.5),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
@@ -775,7 +741,7 @@ class _ProcessingScreenState extends State<ProcessingScreen>
                 height: 40,
                 decoration: BoxDecoration(
                   color: kError.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: const Icon(Icons.error_outline_rounded,
                     color: kError, size: 22),
@@ -787,18 +753,13 @@ class _ProcessingScreenState extends State<ProcessingScreen>
                   children: [
                     Text(
                       'Processing Failed',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: kTextPrimary,
-                            fontWeight: FontWeight.w700,
-                          ),
+                      style: AppText.callout(color: kTextPrimary)
+                          .copyWith(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'An error occurred during OCR processing.',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(color: kTextSecondary),
+                      style: AppText.footnote(color: kTextSecondary),
                     ),
                   ],
                 ),
@@ -811,10 +772,8 @@ class _ProcessingScreenState extends State<ProcessingScreen>
             const SizedBox(height: 12),
             Text(
               'Error details',
-              style: Theme.of(context)
-                  .textTheme
-                  .labelSmall
-                  ?.copyWith(color: kTextTertiary, letterSpacing: 0.8),
+              style: AppText.eyebrow(color: kTextTertiary)
+                  .copyWith(letterSpacing: 0.8),
             ),
             const SizedBox(height: 6),
             Container(
@@ -822,16 +781,12 @@ class _ProcessingScreenState extends State<ProcessingScreen>
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.25),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.xs),
               ),
               child: Text(
                 _errorMessage!,
-                style: const TextStyle(
-                  color: kError,
-                  fontSize: 12,
-                  fontFamily: 'monospace',
-                  height: 1.5,
-                ),
+                style: AppText.footnote(color: kError)
+                    .copyWith(fontFamily: 'monospace', height: 1.5),
               ),
             ),
           ],
@@ -859,10 +814,8 @@ class _ProcessingScreenState extends State<ProcessingScreen>
               const SizedBox(width: 10),
               Text(
                 'Processing Log',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: kTextPrimary,
-                      fontWeight: FontWeight.w700,
-                    ),
+                style: AppText.callout(color: kTextPrimary)
+                    .copyWith(fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -894,9 +847,8 @@ class _ProcessingScreenState extends State<ProcessingScreen>
               backgroundColor: kError,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  borderRadius: BorderRadius.circular(AppRadius.sm)),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
             ),
           )
         else
@@ -904,15 +856,11 @@ class _ProcessingScreenState extends State<ProcessingScreen>
             onPressed: _cancelProcessing,
             icon: const Icon(Icons.cancel_outlined,
                 size: 18, color: kTextTertiary),
-            label: const Text(
-              'Cancel',
-              style: TextStyle(color: kTextTertiary, fontSize: 14),
-            ),
+            label: Text('Cancel',
+                style: AppText.subheadline(color: kTextTertiary)),
           ),
       ],
-    )
-        .animate()
-        .fadeIn(delay: 600.ms, duration: 400.ms);
+    ).animate().fadeIn(delay: 600.ms, duration: 400.ms);
   }
 }
 
@@ -948,7 +896,8 @@ class _LogEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = entry.isError ? kError : (isLatest ? kPrimary : kTextTertiary);
+    final accent =
+        entry.isError ? kError : (isLatest ? kPrimary : kTextTertiary);
     final timeStr =
         '${entry.time.hour.toString().padLeft(2, '0')}:${entry.time.minute.toString().padLeft(2, '0')}:${entry.time.second.toString().padLeft(2, '0')}';
 
@@ -985,29 +934,23 @@ class _LogEntry extends StatelessWidget {
                   children: [
                     Text(
                       entry.stage,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: isLatest ? kTextPrimary : kTextSecondary,
-                            fontWeight: FontWeight.w700,
-                          ),
+                      style: AppText.subheadline(
+                              color: isLatest ? kTextPrimary : kTextSecondary)
+                          .copyWith(fontWeight: FontWeight.w700),
                     ),
                     const Spacer(),
                     Text(
                       timeStr,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: kTextTertiary,
-                            fontSize: 11,
-                            fontFamily: 'monospace',
-                          ),
+                      style: AppText.eyebrow(color: kTextTertiary)
+                          .copyWith(letterSpacing: 0, fontFamily: 'monospace'),
                     ),
                   ],
                 ),
                 const SizedBox(height: 2),
                 Text(
                   entry.message,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: kTextTertiary,
-                        height: 1.4,
-                      ),
+                  style: AppText.footnote(color: kTextTertiary)
+                      .copyWith(height: 1.4),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../design/app_design.dart';
 import '../models/analysis_model.dart';
 import '../models/course_model.dart';
 import '../services/auth_service.dart' hide ApiException;
@@ -31,7 +32,7 @@ class _CoursesScreenState extends State<CoursesScreen>
 
   // ── Filter state ──
   String _searchQuery = '';
-  String? _selectedGradeFilter;   // null = all
+  String? _selectedGradeFilter; // null = all
   String? _selectedSubjectFilter; // null = all
   String? _selectedSemesterFilter; // null = all
   bool _showFailedOnly = false;
@@ -143,23 +144,19 @@ class _CoursesScreenState extends State<CoursesScreen>
 
     // Grade group filter
     if (_selectedGradeFilter != null) {
-      list = list
-          .where((c) => c.grade.startsWith(_selectedGradeFilter!))
-          .toList();
+      list =
+          list.where((c) => c.grade.startsWith(_selectedGradeFilter!)).toList();
     }
 
     // Subject filter
     if (_selectedSubjectFilter != null) {
-      list = list
-          .where((c) => c.subjectCode == _selectedSubjectFilter)
-          .toList();
+      list =
+          list.where((c) => c.subjectCode == _selectedSubjectFilter).toList();
     }
 
     // Semester filter
     if (_selectedSemesterFilter != null) {
-      list = list
-          .where((c) => c.semester == _selectedSemesterFilter)
-          .toList();
+      list = list.where((c) => c.semester == _selectedSemesterFilter).toList();
     }
 
     // Special toggles
@@ -191,7 +188,8 @@ class _CoursesScreenState extends State<CoursesScreen>
 
   List<String> get _availableSubjects {
     if (_analysis == null) return [];
-    final subjects = _analysis!.courses.map((c) => c.subjectCode).toSet().toList();
+    final subjects =
+        _analysis!.courses.map((c) => c.subjectCode).toSet().toList();
     subjects.sort();
     return subjects.where((s) => s.isNotEmpty).toList();
   }
@@ -320,7 +318,8 @@ class _CoursesScreenState extends State<CoursesScreen>
               // ── Body ──
               if (_isLoading)
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.pageGutter, 16, AppSpacing.pageGutter, AppSpacing.bottomSafePad),
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.pageGutter, 16,
+                      AppSpacing.pageGutter, AppSpacing.bottomSafePad),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate(_buildShimmer()),
                   ),
@@ -339,7 +338,8 @@ class _CoursesScreenState extends State<CoursesScreen>
                 )
               else
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.pageGutter, 8, AppSpacing.pageGutter, AppSpacing.bottomSafePad),
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.pageGutter, 8,
+                      AppSpacing.pageGutter, AppSpacing.bottomSafePad),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate(
                       _buildCourseList(),
@@ -375,21 +375,15 @@ class _CoursesScreenState extends State<CoursesScreen>
                       height: 46,
                       decoration: BoxDecoration(
                         color: kSurface,
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                         border: Border.all(color: kBorder),
                       ),
                       child: TextField(
                         controller: _searchCtrl,
-                        style: const TextStyle(
-                            color: kTextPrimary,
-                            fontSize: 14,
-                            fontFamily: 'Outfit'),
+                        style: AppText.subheadline(color: kTextPrimary),
                         decoration: InputDecoration(
                           hintText: 'Search courses…',
-                          hintStyle: const TextStyle(
-                              color: kTextTertiary,
-                              fontSize: 14,
-                              fontFamily: 'Outfit'),
+                          hintStyle: AppText.subheadline(color: kTextTertiary),
                           prefixIcon: const Icon(Icons.search_rounded,
                               color: kTextTertiary, size: 20),
                           suffixIcon: _searchQuery.isNotEmpty
@@ -450,22 +444,22 @@ class _CoursesScreenState extends State<CoursesScreen>
                         _FilterTag(
                           label: 'Grade: $_selectedGradeFilter',
                           accent: gradeColor(_selectedGradeFilter!),
-                          onRemove: () => setState(
-                              () => _selectedGradeFilter = null),
+                          onRemove: () =>
+                              setState(() => _selectedGradeFilter = null),
                         ),
                       if (_selectedSubjectFilter != null)
                         _FilterTag(
                           label: 'Subject: $_selectedSubjectFilter',
                           accent: const Color(0xFF818CF8),
-                          onRemove: () => setState(
-                              () => _selectedSubjectFilter = null),
+                          onRemove: () =>
+                              setState(() => _selectedSubjectFilter = null),
                         ),
                       if (_selectedSemesterFilter != null)
                         _FilterTag(
                           label: _selectedSemesterFilter!,
                           accent: kPrimary,
-                          onRemove: () => setState(
-                              () => _selectedSemesterFilter = null),
+                          onRemove: () =>
+                              setState(() => _selectedSemesterFilter = null),
                         ),
                       if (_showFailedOnly)
                         _FilterTag(
@@ -570,17 +564,16 @@ class _CoursesScreenState extends State<CoursesScreen>
     final total = courses.length;
     final passed = courses.where((c) => !c.isFailed).length;
     final failed = courses.where((c) => c.isFailed).length;
-    final totalCredits =
-        courses.fold<double>(0, (sum, c) => sum + c.credits);
+    final totalCredits = courses.fold<double>(0, (sum, c) => sum + c.credits);
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(AppRadius.sm),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
             gradient: LinearGradient(
               colors: [
                 Colors.white.withValues(alpha: 0.06),
@@ -639,7 +632,7 @@ class _CoursesScreenState extends State<CoursesScreen>
         height: height,
         width: width ?? double.infinity,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           color: kSurface,
         ),
         child: ShimmerBox(height: height, borderRadius: 14),
@@ -658,7 +651,7 @@ class _CoursesScreenState extends State<CoursesScreen>
             backgroundColor: kError,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(AppRadius.sm)),
           ),
         ),
       );
@@ -666,15 +659,15 @@ class _CoursesScreenState extends State<CoursesScreen>
   Widget _buildEmpty() => EmptyState(
         icon: Icons.menu_book_outlined,
         title: 'No courses yet',
-        subtitle:
-            'Upload your NSU transcript to see your course history here.',
+        subtitle: 'Upload your NSU transcript to see your course history here.',
         accent: const Color(0xFF818CF8),
       );
 
   Widget _buildGuestState() => EmptyState(
         icon: Icons.lock_outline_rounded,
         title: 'Guest mode is active',
-        subtitle: 'Sign in with Google to view your personalized course history.',
+        subtitle:
+            'Sign in with Google to view your personalized course history.',
         accent: kPrimary,
         action: GradientButton(
           label: 'Sign In with Google',
@@ -718,12 +711,12 @@ class _CourseCardState extends State<CourseCard> {
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
             child: Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -754,7 +747,7 @@ class _CourseCardState extends State<CourseCard> {
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(13),
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
@@ -764,7 +757,8 @@ class _CourseCardState extends State<CourseCard> {
                               ],
                             ),
                             border: Border.all(
-                                color: accent.withValues(alpha: 0.30), width: 1),
+                                color: accent.withValues(alpha: 0.30),
+                                width: 1),
                           ),
                           child: Center(
                             child: Text(
@@ -773,12 +767,8 @@ class _CourseCardState extends State<CourseCard> {
                                   : c.subjectCode.length > 3
                                       ? c.subjectCode.substring(0, 3)
                                       : c.subjectCode,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                color: accent,
-                                fontFamily: 'Outfit',
-                              ),
+                              style: AppText.eyebrow(color: accent)
+                                  .copyWith(letterSpacing: 0),
                             ),
                           ),
                         ),
@@ -793,24 +783,19 @@ class _CourseCardState extends State<CourseCard> {
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    c.code,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.copyWith(
-                                          color: kTextPrimary,
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 15,
-                                        ),
-                                  ),
+                                  Text(c.code,
+                                      style:
+                                          AppText.callout(color: kTextPrimary)
+                                              .copyWith(
+                                                  fontWeight: FontWeight.w800)),
                                   if (hasBadge) ...[
                                     const SizedBox(width: 8),
                                     if (c.isFailed)
                                       _MiniTag(label: 'Failed', color: kError),
                                     if (c.isRetake && !c.isFailed) ...[
                                       const SizedBox(width: 4),
-                                      _MiniTag(label: 'Retake', color: kWarning),
+                                      _MiniTag(
+                                          label: 'Retake', color: kWarning),
                                     ],
                                   ],
                                 ],
@@ -819,10 +804,8 @@ class _CourseCardState extends State<CourseCard> {
                                 const SizedBox(height: 4),
                                 Text(
                                   c.name,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(color: kTextSecondary),
+                                  style:
+                                      AppText.footnote(color: kTextSecondary),
                                   maxLines: _expanded ? 3 : 1,
                                   overflow: _expanded
                                       ? TextOverflow.visible
@@ -909,14 +892,12 @@ class _ExpandedDetails extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _DetailCell(
-                    label: 'Course Code', value: course.code),
+                child: _DetailCell(label: 'Course Code', value: course.code),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _DetailCell(
-                    label: 'Credit Hours',
-                    value: '${course.credits}'),
+                    label: 'Credit Hours', value: '${course.credits}'),
               ),
             ],
           ),
@@ -924,13 +905,11 @@ class _ExpandedDetails extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _DetailCell(
-                    label: 'Grade', value: course.grade),
+                child: _DetailCell(label: 'Grade', value: course.grade),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _DetailCell(
-                    label: 'Semester', value: course.semester),
+                child: _DetailCell(label: 'Semester', value: course.semester),
               ),
             ],
           ),
@@ -941,16 +920,14 @@ class _ExpandedDetails extends StatelessWidget {
                 accent: kError,
                 icon: Icons.warning_amber_rounded,
                 title: 'Course Failed',
-                body:
-                    'This course has a failing grade. Consider retaking it.',
+                body: 'This course has a failing grade. Consider retaking it.',
               ),
             if (course.isRetake && !course.isFailed) ...[
               AlertBox(
                 accent: kWarning,
                 icon: Icons.refresh_rounded,
                 title: 'Course Retaken',
-                body:
-                    'This course appears more than once in your transcript.',
+                body: 'This course appears more than once in your transcript.',
               ),
             ],
           ],
@@ -971,24 +948,19 @@ class _DetailCell extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppRadius.xs),
         border: Border.all(color: kBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: kTextTertiary, fontSize: 11)),
+              style: AppText.eyebrow(color: kTextTertiary)
+                  .copyWith(letterSpacing: 0)),
           const SizedBox(height: 4),
           Text(value,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(
-                      color: kTextPrimary, fontWeight: FontWeight.w700)),
+              style: AppText.callout(color: kTextPrimary)
+                  .copyWith(fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -1011,8 +983,9 @@ class _SemesterHeader extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: kPrimary.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: kPrimary.withValues(alpha: 0.25), width: 1),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            border:
+                Border.all(color: kPrimary.withValues(alpha: 0.25), width: 1),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -1022,11 +995,7 @@ class _SemesterHeader extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 semester,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: kPrimary,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.3,
-                    ),
+                style: AppText.eyebrow().copyWith(letterSpacing: 0.3),
               ),
             ],
           ),
@@ -1071,17 +1040,19 @@ class _SortSheetState extends State<_SortSheet> {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      borderRadius:
+          const BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
         child: Container(
           decoration: BoxDecoration(
             color: kSurface.withValues(alpha: 0.95),
             borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(24)),
+                const BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
             border: const Border(top: BorderSide(color: kBorder, width: 1)),
           ),
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.pageGutter,
+              AppSpacing.sm, AppSpacing.pageGutter, AppSpacing.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1093,15 +1064,13 @@ class _SortSheetState extends State<_SortSheet> {
                   height: 4,
                   decoration: BoxDecoration(
                     color: kBorder,
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
                   ),
                 ),
               ),
               const SizedBox(height: 20),
 
-              Text('Sort by',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: kTextPrimary, fontWeight: FontWeight.w700)),
+              Text('Sort by', style: AppText.footnote(color: kTextSecondary)),
               const SizedBox(height: 16),
 
               ...[
@@ -1161,8 +1130,9 @@ class _SortTile extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: selected ? kPrimary.withValues(alpha: 0.12) : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
+          color:
+              selected ? kPrimary.withValues(alpha: 0.12) : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           border: Border.all(
             color: selected ? kPrimary.withValues(alpha: 0.35) : kBorder,
             width: 1,
@@ -1170,17 +1140,16 @@ class _SortTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon,
-                color: selected ? kPrimary : kTextSecondary, size: 20),
+            Icon(icon, color: selected ? kPrimary : kTextSecondary, size: 20),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
                 label,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: selected ? kTextPrimary : kTextSecondary,
-                      fontWeight:
-                          selected ? FontWeight.w600 : FontWeight.w400,
-                    ),
+                style: AppText.subheadline(
+                        color: selected ? kTextPrimary : kTextSecondary)
+                    .copyWith(
+                        fontWeight:
+                            selected ? FontWeight.w600 : FontWeight.w400),
               ),
             ),
             if (selected)
@@ -1255,18 +1224,22 @@ class _FilterSheetState extends State<_FilterSheet> {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      borderRadius:
+          const BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
         child: Container(
           decoration: BoxDecoration(
             color: kSurface.withValues(alpha: 0.95),
             borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(24)),
+                const BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
             border: const Border(top: BorderSide(color: kBorder, width: 1)),
           ),
           padding: EdgeInsets.fromLTRB(
-              20, 12, 20, MediaQuery.of(context).viewInsets.bottom + 32),
+              AppSpacing.pageGutter,
+              AppSpacing.sm,
+              AppSpacing.pageGutter,
+              MediaQuery.of(context).viewInsets.bottom + AppSpacing.xl),
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1279,7 +1252,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                     height: 4,
                     decoration: BoxDecoration(
                       color: kBorder,
-                      borderRadius: BorderRadius.circular(999),
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
                     ),
                   ),
                 ),
@@ -1288,12 +1261,8 @@ class _FilterSheetState extends State<_FilterSheet> {
                 Row(
                   children: [
                     Text('Filters',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(
-                                color: kTextPrimary,
-                                fontWeight: FontWeight.w700)),
+                        style: AppText.headline(color: kTextPrimary)
+                            .copyWith(fontWeight: FontWeight.w700)),
                     const Spacer(),
                     TextButton(
                       onPressed: () => setState(() {
@@ -1304,10 +1273,8 @@ class _FilterSheetState extends State<_FilterSheet> {
                         _retakesOnly = false;
                       }),
                       style: TextButton.styleFrom(
-                          foregroundColor: kError,
-                          padding: EdgeInsets.zero),
-                      child: const Text('Reset',
-                          style: TextStyle(fontSize: 13)),
+                          foregroundColor: kError, padding: EdgeInsets.zero),
+                      child: Text('Reset', style: AppText.subheadline()),
                     ),
                   ],
                 ),
@@ -1323,8 +1290,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                     final selected = _grade == g;
                     final color = gradeColor(g);
                     return GestureDetector(
-                      onTap: () =>
-                          setState(() => _grade = selected ? null : g),
+                      onTap: () => setState(() => _grade = selected ? null : g),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         padding: const EdgeInsets.symmetric(
@@ -1333,7 +1299,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                           color: selected
                               ? color.withValues(alpha: 0.20)
                               : Colors.transparent,
-                          borderRadius: BorderRadius.circular(999),
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
                           border: Border.all(
                             color: selected
                                 ? color.withValues(alpha: 0.50)
@@ -1343,14 +1309,12 @@ class _FilterSheetState extends State<_FilterSheet> {
                         ),
                         child: Text(
                           'Grade $g',
-                          style: TextStyle(
-                            color: selected ? color : kTextSecondary,
-                            fontSize: 13,
-                            fontWeight: selected
-                                ? FontWeight.w700
-                                : FontWeight.w400,
-                            fontFamily: 'Outfit',
-                          ),
+                          style: AppText.subheadline(
+                                  color: selected ? color : kTextSecondary)
+                              .copyWith(
+                                  fontWeight: selected
+                                      ? FontWeight.w700
+                                      : FontWeight.w400),
                         ),
                       ),
                     );
@@ -1371,8 +1335,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                         _SubjectChip(
                           label: 'All',
                           selected: _subject == null,
-                          onTap: () =>
-                              setState(() => _subject = null),
+                          onTap: () => setState(() => _subject = null),
                         ),
                         ...widget.subjects.map(
                           (s) => _SubjectChip(
@@ -1400,15 +1363,14 @@ class _FilterSheetState extends State<_FilterSheet> {
                         _SubjectChip(
                           label: 'All',
                           selected: _semester == null,
-                          onTap: () =>
-                              setState(() => _semester = null),
+                          onTap: () => setState(() => _semester = null),
                         ),
                         ...widget.semesters.map(
                           (s) => _SubjectChip(
                             label: s,
                             selected: _semester == s,
-                            onTap: () => setState(() =>
-                                _semester = _semester == s ? null : s),
+                            onTap: () => setState(
+                                () => _semester = _semester == s ? null : s),
                           ),
                         ),
                       ],
@@ -1506,15 +1468,12 @@ class _MiniTag extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(5),
+        borderRadius: BorderRadius.circular(AppRadius.xs / 2),
       ),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 9,
+        style: AppText.caption(color: color).copyWith(
           fontWeight: FontWeight.w800,
-          color: color,
-          fontFamily: 'Outfit',
         ),
       ),
     );
@@ -1535,10 +1494,8 @@ class _MetaChip extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           label,
-          style: Theme.of(context)
-              .textTheme
-              .bodySmall
-              ?.copyWith(color: kTextTertiary, fontSize: 11),
+          style:
+              AppText.eyebrow(color: kTextTertiary).copyWith(letterSpacing: 0),
         ),
       ],
     );
@@ -1568,14 +1525,13 @@ class _IconBtn extends StatelessWidget {
         height: 46,
         decoration: BoxDecoration(
           color: active ? accent.withValues(alpha: 0.15) : kSurface,
-          borderRadius: BorderRadius.circular(13),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           border: Border.all(
             color: active ? accent.withValues(alpha: 0.40) : kBorder,
             width: 1,
           ),
         ),
-        child: Icon(icon,
-            color: active ? accent : kTextSecondary, size: 20),
+        child: Icon(icon, color: active ? accent : kTextSecondary, size: 20),
       ),
     );
   }
@@ -1603,7 +1559,7 @@ class _FilterTag extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: accent.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
           border: Border.all(color: accent.withValues(alpha: 0.30), width: 1),
         ),
         child: Row(
@@ -1615,12 +1571,8 @@ class _FilterTag extends StatelessWidget {
             ],
             Text(
               label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: accent,
-                fontFamily: 'Outfit',
-              ),
+              style: AppText.eyebrow(color: accent)
+                  .copyWith(letterSpacing: 0, fontWeight: FontWeight.w600),
             ),
             if (icon == null) ...[
               const SizedBox(width: 5),
@@ -1651,21 +1603,13 @@ class _StatCell extends StatelessWidget {
       children: [
         Text(
           value,
-          style: TextStyle(
-            color: accent,
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            fontFamily: 'Outfit',
-          ),
+          style: AppText.title3(color: accent)
+              .copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(
-            color: kTextTertiary,
-            fontSize: 10,
-            fontFamily: 'Outfit',
-          ),
+          style: AppText.caption(color: kTextTertiary),
         ),
       ],
     );
@@ -1691,11 +1635,7 @@ class _FilterSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       label.toUpperCase(),
-      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: kTextTertiary,
-            letterSpacing: 1.2,
-            fontWeight: FontWeight.w700,
-          ),
+      style: AppText.eyebrow(color: kTextTertiary).copyWith(letterSpacing: 1.2),
     );
   }
 }
@@ -1720,8 +1660,9 @@ class _SubjectChip extends StatelessWidget {
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? kPrimary.withValues(alpha: 0.20) : Colors.transparent,
-          borderRadius: BorderRadius.circular(999),
+          color:
+              selected ? kPrimary.withValues(alpha: 0.20) : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.pill),
           border: Border.all(
             color: selected ? kPrimary.withValues(alpha: 0.50) : kBorder,
             width: 1,
@@ -1729,11 +1670,10 @@ class _SubjectChip extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: TextStyle(
-            color: selected ? kPrimary : kTextSecondary,
-            fontSize: 13,
+          style:
+              AppText.subheadline(color: selected ? kPrimary : kTextSecondary)
+                  .copyWith(
             fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-            fontFamily: 'Outfit',
           ),
         ),
       ),
@@ -1764,9 +1704,8 @@ class _ToggleRow extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color:
-              value ? accent.withValues(alpha: 0.10) : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
+          color: value ? accent.withValues(alpha: 0.10) : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           border: Border.all(
             color: value ? accent.withValues(alpha: 0.35) : kBorder,
             width: 1,
@@ -1774,17 +1713,15 @@ class _ToggleRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon,
-                color: value ? accent : kTextSecondary, size: 18),
+            Icon(icon, color: value ? accent : kTextSecondary, size: 18),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
                 label,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: value ? kTextPrimary : kTextSecondary,
-                      fontWeight:
-                          value ? FontWeight.w600 : FontWeight.w400,
-                    ),
+                style: AppText.subheadline(
+                        color: value ? kTextPrimary : kTextSecondary)
+                    .copyWith(
+                        fontWeight: value ? FontWeight.w600 : FontWeight.w400),
               ),
             ),
             AnimatedContainer(
@@ -1793,14 +1730,12 @@ class _ToggleRow extends StatelessWidget {
               height: 24,
               decoration: BoxDecoration(
                 color: value ? accent : kSurface,
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(
-                    color: value ? accent : kBorder, width: 1),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+                border: Border.all(color: value ? accent : kBorder, width: 1),
               ),
               child: AnimatedAlign(
                 duration: const Duration(milliseconds: 200),
-                alignment:
-                    value ? Alignment.centerRight : Alignment.centerLeft,
+                alignment: value ? Alignment.centerRight : Alignment.centerLeft,
                 child: Container(
                   margin: const EdgeInsets.all(3),
                   width: 18,

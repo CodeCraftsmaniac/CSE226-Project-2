@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
 import '../models/health_model.dart';
+import '../design/app_design.dart';
 import '../services/api_service.dart';
 import '../widgets/glass_widgets.dart';
 
@@ -31,9 +32,9 @@ class _HealthScreenState extends State<HealthScreen>
   int _uptimeTicker = 0;
 
   // ── Latency history (last N readings per layer) ──
-  final _backendHistory  = <int>[];
-  final _dbHistory       = <int>[];
-  final _ocrHistory      = <int>[];
+  final _backendHistory = <int>[];
+  final _dbHistory = <int>[];
+  final _ocrHistory = <int>[];
   static const _historyMax = 20;
 
   // ── Timers ──
@@ -239,7 +240,8 @@ class _HealthScreenState extends State<HealthScreen>
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(AppSpacing.pageGutter, 8, AppSpacing.pageGutter, AppSpacing.bottomSafePad),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.pageGutter, 8,
+                    AppSpacing.pageGutter, AppSpacing.bottomSafePad),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate(
                     _isLoading ? _buildShimmer() : _buildContent(),
@@ -373,9 +375,7 @@ class _HealthScreenState extends State<HealthScreen>
       const SizedBox(height: 24),
 
       // ── Polling info footer ──
-      _PollingFooter()
-          .animate()
-          .fadeIn(delay: 460.ms, duration: 400.ms),
+      _PollingFooter().animate().fadeIn(delay: 460.ms, duration: 400.ms),
     ];
   }
 
@@ -385,7 +385,7 @@ class _HealthScreenState extends State<HealthScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: kError.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         border: Border.all(color: kError.withValues(alpha: 0.30), width: 1),
       ),
       child: Row(
@@ -395,12 +395,8 @@ class _HealthScreenState extends State<HealthScreen>
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(
-                color: kError,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                fontFamily: 'Outfit',
-              ),
+              style: AppText.subheadline(color: kError)
+                  .copyWith(fontWeight: FontWeight.w500),
             ),
           ),
         ],
@@ -423,8 +419,8 @@ class _HealthScreenState extends State<HealthScreen>
           style: ElevatedButton.styleFrom(
             backgroundColor: kError,
             foregroundColor: Colors.white,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.sm)),
           ),
         ),
       ),
@@ -456,7 +452,7 @@ class _HealthScreenState extends State<HealthScreen>
         height: height,
         width: width ?? double.infinity,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           color: kSurface,
         ),
         child: ShimmerBox(height: height, borderRadius: 20),
@@ -493,7 +489,7 @@ class _OverallStatusCard extends StatelessWidget {
     final isHealthy = health.isHealthy;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(AppRadius.xl),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
         child: AnimatedBuilder(
@@ -502,7 +498,7 @@ class _OverallStatusCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(AppRadius.xl),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -519,7 +515,8 @@ class _OverallStatusCard extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: accent.withValues(alpha: 0.10 + 0.06 * pulseCtrl.value),
+                  color:
+                      accent.withValues(alpha: 0.10 + 0.06 * pulseCtrl.value),
                   blurRadius: 40,
                   offset: const Offset(0, 8),
                 ),
@@ -541,8 +538,8 @@ class _OverallStatusCard extends StatelessWidget {
                             shape: BoxShape.circle,
                             gradient: RadialGradient(
                               colors: [
-                                accent.withValues(alpha: 
-                                    0.18 + 0.10 * pulseCtrl.value),
+                                accent.withValues(
+                                    alpha: 0.18 + 0.10 * pulseCtrl.value),
                                 Colors.transparent,
                               ],
                             ),
@@ -583,8 +580,7 @@ class _OverallStatusCard extends StatelessWidget {
                                 .textTheme
                                 .bodySmall
                                 ?.copyWith(
-                                    color: kTextTertiary,
-                                    letterSpacing: 0.8),
+                                    color: kTextTertiary, letterSpacing: 0.8),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -678,8 +674,9 @@ class _OverallStatusCard extends StatelessWidget {
   }
 
   String _avgLatency() {
-    final total =
-        health.backend.latencyMs + health.database.latencyMs + health.ocr.latencyMs;
+    final total = health.backend.latencyMs +
+        health.database.latencyMs +
+        health.ocr.latencyMs;
     final avg = total ~/ 3;
     return '${avg}ms';
   }
@@ -717,7 +714,10 @@ class _SmallDot extends StatelessWidget {
         shape: BoxShape.circle,
         color: _color,
         boxShadow: [
-          BoxShadow(color: _color.withValues(alpha: 0.6), blurRadius: 4, spreadRadius: 1),
+          BoxShadow(
+              color: _color.withValues(alpha: 0.6),
+              blurRadius: 4,
+              spreadRadius: 1),
         ],
       ),
     );
@@ -745,18 +745,14 @@ class _MetaCell extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           value,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: kTextPrimary,
-                fontWeight: FontWeight.w700,
-              ),
+          style: AppText.callout(color: kTextPrimary)
+              .copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 2),
         Text(
           label,
-          style: Theme.of(context)
-              .textTheme
-              .bodySmall
-              ?.copyWith(color: kTextTertiary, fontSize: 11),
+          style:
+              AppText.eyebrow(color: kTextTertiary).copyWith(letterSpacing: 0),
         ),
       ],
     );
@@ -785,8 +781,8 @@ class _PollIndicator extends StatelessWidget {
                   height: 14,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(kPrimary.withValues(alpha: 0.7)),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        kPrimary.withValues(alpha: 0.7)),
                   ),
                 )
               : const Icon(
@@ -798,7 +794,9 @@ class _PollIndicator extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Text(
-          isRefreshing ? 'Fetching live data…' : 'Auto-refreshing every 3 seconds',
+          isRefreshing
+              ? 'Fetching live data…'
+              : 'Auto-refreshing every 3 seconds',
           style: Theme.of(context)
               .textTheme
               .bodySmall
@@ -855,13 +853,13 @@ class _LayerCardState extends State<_LayerCard> {
     return GestureDetector(
       onTap: () => setState(() => _expanded = !_expanded),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -887,7 +885,7 @@ class _LayerCardState extends State<_LayerCard> {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
@@ -901,8 +899,8 @@ class _LayerCardState extends State<_LayerCard> {
                             width: 1,
                           ),
                         ),
-                        child: Icon(widget.icon,
-                            color: widget.accent, size: 24),
+                        child:
+                            Icon(widget.icon, color: widget.accent, size: 24),
                       ),
 
                       const SizedBox(width: 14),
@@ -914,21 +912,13 @@ class _LayerCardState extends State<_LayerCard> {
                           children: [
                             Text(
                               widget.label,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.copyWith(
-                                    color: kTextPrimary,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                              style: AppText.callout(color: kTextPrimary)
+                                  .copyWith(fontWeight: FontWeight.w700),
                             ),
                             const SizedBox(height: 3),
                             Text(
                               widget.subtitle,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(color: kTextTertiary),
+                              style: AppText.footnote(color: kTextTertiary),
                             ),
                           ],
                         ),
@@ -949,12 +939,8 @@ class _LayerCardState extends State<_LayerCard> {
                               const SizedBox(width: 6),
                               Text(
                                 sl,
-                                style: TextStyle(
-                                  color: sc,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  fontFamily: 'Outfit',
-                                ),
+                                style: AppText.caption(color: sc)
+                                    .copyWith(fontWeight: FontWeight.w700),
                               ),
                             ],
                           ),
@@ -962,12 +948,8 @@ class _LayerCardState extends State<_LayerCard> {
                           // Latency
                           Text(
                             '${widget.layer.latencyMs}ms',
-                            style: TextStyle(
-                              color: lc,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              fontFamily: 'Outfit',
-                            ),
+                            style: AppText.subheadline(color: lc)
+                                .copyWith(fontWeight: FontWeight.w700),
                           ),
                         ],
                       ),
@@ -995,22 +977,13 @@ class _LayerCardState extends State<_LayerCard> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Latency',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                    color: kTextTertiary, fontSize: 11),
-                          ),
+                          Text('Latency',
+                              style: AppText.eyebrow(color: kTextTertiary)
+                                  .copyWith(letterSpacing: 0)),
                           Text(
                             _latencyLabel(widget.layer.latencyMs),
-                            style: TextStyle(
-                              color: lc,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Outfit',
-                            ),
+                            style: AppText.eyebrow(color: lc).copyWith(
+                                letterSpacing: 0, fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
@@ -1023,7 +996,7 @@ class _LayerCardState extends State<_LayerCard> {
                         animateFromLastPercent: true,
                         backgroundColor: Colors.white.withValues(alpha: 0.06),
                         progressColor: lc,
-                        barRadius: const Radius.circular(999),
+                        barRadius: const Radius.circular(AppRadius.pill),
                         padding: EdgeInsets.zero,
                         trailing: const SizedBox.shrink(),
                         leading: const SizedBox.shrink(),
@@ -1077,7 +1050,8 @@ class _LayerExpandedDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final maxHistory = history.isEmpty ? 0 : history.reduce((a, b) => a > b ? a : b);
+    final maxHistory =
+        history.isEmpty ? 0 : history.reduce((a, b) => a > b ? a : b);
     final avg = history.isEmpty
         ? 0
         : history.fold(0, (sum, v) => sum + v) ~/ history.length;
@@ -1097,16 +1071,22 @@ class _LayerExpandedDetails extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                  child: _StatMini(label: 'Current', value: '${layer.latencyMs}ms', accent: accent)),
+                  child: _StatMini(
+                      label: 'Current',
+                      value: '${layer.latencyMs}ms',
+                      accent: accent)),
               const SizedBox(width: 8),
               Expanded(
-                  child: _StatMini(label: 'Avg', value: '${avg}ms', accent: kPrimary)),
+                  child: _StatMini(
+                      label: 'Avg', value: '${avg}ms', accent: kPrimary)),
               const SizedBox(width: 8),
               Expanded(
-                  child: _StatMini(label: 'Min', value: '${min}ms', accent: kSuccess)),
+                  child: _StatMini(
+                      label: 'Min', value: '${min}ms', accent: kSuccess)),
               const SizedBox(width: 8),
               Expanded(
-                  child: _StatMini(label: 'Max', value: '${max}ms', accent: kError)),
+                  child: _StatMini(
+                      label: 'Max', value: '${max}ms', accent: kError)),
             ],
           ),
 
@@ -1115,19 +1095,15 @@ class _LayerExpandedDetails extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'LATENCY HISTORY',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: kTextTertiary,
-                    letterSpacing: 1.2,
-                  ),
+              style: AppText.eyebrow(color: kTextTertiary)
+                  .copyWith(letterSpacing: 1.2),
             ),
             const SizedBox(height: 8),
             SizedBox(
               height: 48,
               child: _SparkLine(
                 values: history.map((v) => v.toDouble()).toList(),
-                maxVal: maxHistory.toDouble() > 0
-                    ? maxHistory.toDouble()
-                    : 100,
+                maxVal: maxHistory.toDouble() > 0 ? maxHistory.toDouble() : 100,
                 color: accent,
               ),
             ),
@@ -1141,7 +1117,7 @@ class _LayerExpandedDetails extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.xs),
                 border: Border.all(color: kBorder),
               ),
               child: Row(
@@ -1152,9 +1128,7 @@ class _LayerExpandedDetails extends StatelessWidget {
                   Expanded(
                     child: Text(
                       layer.message!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: kTextSecondary,
-                          ),
+                      style: AppText.footnote(color: kTextSecondary),
                     ),
                   ),
                 ],
@@ -1184,28 +1158,18 @@ class _StatMini extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppRadius.xs),
         border: Border.all(color: kBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: kTextTertiary, fontSize: 10),
-          ),
+          Text(label, style: AppText.caption(color: kTextTertiary)),
           const SizedBox(height: 3),
           Text(
             value,
-            style: TextStyle(
-              color: accent,
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              fontFamily: 'Outfit',
-            ),
+            style: AppText.subheadline(color: accent)
+                .copyWith(fontWeight: FontWeight.w700),
           ),
         ],
       ),
@@ -1278,7 +1242,8 @@ class _SparkLinePainter extends CustomPainter {
     for (int i = 0; i < values.length; i++) {
       final x = i * step;
       final normalised = maxVal > 0 ? (values[i] / maxVal) : 0.0;
-      final y = size.height - (normalised * size.height).clamp(2.0, size.height - 2);
+      final y =
+          size.height - (normalised * size.height).clamp(2.0, size.height - 2);
 
       if (i == 0) {
         path.moveTo(x, y);
@@ -1310,7 +1275,8 @@ class _SparkLinePainter extends CustomPainter {
     for (int i = 0; i < values.length; i++) {
       final x = i * step;
       final normalised = maxVal > 0 ? (values[i] / maxVal) : 0.0;
-      final y = size.height - (normalised * size.height).clamp(2.0, size.height - 2);
+      final y =
+          size.height - (normalised * size.height).clamp(2.0, size.height - 2);
       canvas.drawCircle(Offset(x, y), 2.5, dotPaint);
     }
   }
@@ -1380,8 +1346,7 @@ class _AnimatedStatusDotState extends State<_AnimatedStatusDot>
               height: 16 + 4 * _anim.value,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: widget.color
-                    .withValues(alpha: 0.20 * (1 - _anim.value)),
+                color: widget.color.withValues(alpha: 0.20 * (1 - _anim.value)),
               ),
             ),
           // Inner dot
@@ -1393,8 +1358,8 @@ class _AnimatedStatusDotState extends State<_AnimatedStatusDot>
               color: widget.color,
               boxShadow: [
                 BoxShadow(
-                  color: widget.color
-                      .withValues(alpha: 0.4 + 0.3 * _anim.value),
+                  color:
+                      widget.color.withValues(alpha: 0.4 + 0.3 * _anim.value),
                   blurRadius: 6 + 4 * _anim.value,
                   spreadRadius: 1,
                 ),
@@ -1426,9 +1391,8 @@ class _LatencyComparison extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final maxMs = [backend, database, ocr]
-        .reduce((a, b) => a > b ? a : b)
-        .clamp(1, 9999);
+    final maxMs =
+        [backend, database, ocr].reduce((a, b) => a > b ? a : b).clamp(1, 9999);
 
     return GlassCard(
       child: Column(
@@ -1514,22 +1478,13 @@ class _LatencyBar extends StatelessWidget {
             Icon(icon, size: 15, color: color),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(
-                label,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: kTextSecondary),
-              ),
+              child:
+                  Text(label, style: AppText.footnote(color: kTextSecondary)),
             ),
             Text(
               '${value}ms',
-              style: TextStyle(
-                color: color,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                fontFamily: 'Outfit',
-              ),
+              style: AppText.subheadline(color: color)
+                  .copyWith(fontWeight: FontWeight.w700),
             ),
           ],
         ),
@@ -1542,7 +1497,7 @@ class _LatencyBar extends StatelessWidget {
           animateFromLastPercent: true,
           backgroundColor: Colors.white.withValues(alpha: 0.06),
           progressColor: color,
-          barRadius: const Radius.circular(999),
+          barRadius: const Radius.circular(AppRadius.pill),
           padding: EdgeInsets.zero,
           trailing: const SizedBox.shrink(),
           leading: const SizedBox.shrink(),
@@ -1591,11 +1546,10 @@ class _PollingFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
           border: Border.all(color: kBorder),
         ),
         child: Row(
@@ -1605,10 +1559,8 @@ class _PollingFooter extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               'Live monitoring • ocrapi.nsunexus.app/health/realtime',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: kTextTertiary,
-                    fontSize: 11,
-                  ),
+              style: AppText.eyebrow(color: kTextTertiary)
+                  .copyWith(letterSpacing: 0),
             ),
           ],
         ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../design/app_design.dart';
 import '../widgets/glass_widgets.dart';
 import '../services/auth_service.dart';
 import 'onboarding_screen.dart';
@@ -27,7 +28,8 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     final prefs = await SharedPreferences.getInstance();
-    final hasCompletedOnboarding = prefs.getBool('onboarding_complete') ?? false;
+    final hasCompletedOnboarding =
+        prefs.getBool('onboarding_complete') ?? false;
 
     if (!mounted) return;
 
@@ -87,11 +89,15 @@ class _SplashScreenState extends State<SplashScreen> {
                     width: 140,
                     height: 140,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(40),
+                      borderRadius: BorderRadius.circular(AppRadius.xxl),
                       gradient: const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [Color(0xFF38BDF8), Color(0xFF2E86DE), Color(0xFF0052CC)],
+                        colors: [
+                          Color(0xFF38BDF8),
+                          Color(0xFF2E86DE),
+                          Color(0xFF0052CC)
+                        ],
                       ),
                       boxShadow: [
                         BoxShadow(
@@ -134,7 +140,8 @@ class _SplashScreenState extends State<SplashScreen> {
                               shape: BoxShape.circle,
                               border: Border.all(color: Colors.white, width: 2),
                             ),
-                            child: const Icon(Icons.check, size: 18, color: Colors.white),
+                            child: const Icon(Icons.check,
+                                size: 18, color: Colors.white),
                           ),
                         ),
                       ],
@@ -156,10 +163,11 @@ class _SplashScreenState extends State<SplashScreen> {
                     'North South University',
                     style: AppText.callout(color: const Color(0xFFB4C7DA))
                         .copyWith(letterSpacing: 1.8),
-                  )
-                      .animate()
-                      .fadeIn(delay: 300.ms, duration: 500.ms)
-                      .slideY(begin: 0.3, end: 0, duration: 500.ms, curve: Curves.easeOut),
+                  ).animate().fadeIn(delay: 300.ms, duration: 500.ms).slideY(
+                      begin: 0.3,
+                      end: 0,
+                      duration: 500.ms,
+                      curve: Curves.easeOut),
 
                   const SizedBox(height: AppSpacing.sm),
 
@@ -173,10 +181,11 @@ class _SplashScreenState extends State<SplashScreen> {
                       style: AppText.largeTitle(color: Colors.white)
                           .copyWith(fontSize: 36, fontWeight: FontWeight.w800),
                     ),
-                  )
-                      .animate()
-                      .fadeIn(delay: 500.ms, duration: 500.ms)
-                      .slideY(begin: 0.3, end: 0, duration: 500.ms, curve: Curves.easeOut),
+                  ).animate().fadeIn(delay: 500.ms, duration: 500.ms).slideY(
+                      begin: 0.3,
+                      end: 0,
+                      duration: 500.ms,
+                      curve: Curves.easeOut),
 
                   const SizedBox(height: 60),
 
@@ -187,9 +196,10 @@ class _SplashScreenState extends State<SplashScreen> {
                       children: [
                         LinearProgressIndicator(
                           minHeight: 4,
-                          borderRadius: BorderRadius.circular(999),
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
                           backgroundColor: Colors.white.withValues(alpha: 0.1),
-                          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF57C5FF)),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                              Color(0xFF57C5FF)),
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -200,9 +210,7 @@ class _SplashScreenState extends State<SplashScreen> {
                         ),
                       ],
                     ),
-                  )
-                      .animate()
-                      .fadeIn(delay: 800.ms, duration: 500.ms),
+                  ).animate().fadeIn(delay: 800.ms, duration: 500.ms),
                 ],
               ),
             ),
@@ -214,11 +222,13 @@ class _SplashScreenState extends State<SplashScreen> {
               right: 0,
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    border:
+                        Border.all(color: Colors.white.withValues(alpha: 0.08)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -237,9 +247,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       ),
                     ],
                   ),
-                )
-                    .animate()
-                    .fadeIn(delay: 1000.ms, duration: 500.ms),
+                ).animate().fadeIn(delay: 1000.ms, duration: 500.ms),
               ),
             ),
           ],

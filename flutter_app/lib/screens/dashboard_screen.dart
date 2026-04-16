@@ -21,6 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
+import '../design/app_design.dart';
 import '../models/analysis_model.dart';
 import '../models/course_model.dart';
 import '../services/auth_service.dart' hide ApiException;
@@ -314,7 +315,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         width: double.infinity,
         margin: const EdgeInsets.only(bottom: 0),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           color: kSurface,
         ),
         child: ShimmerBox(height: height, borderRadius: 20),
@@ -335,7 +336,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               backgroundColor: kError,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(AppRadius.sm)),
             ),
           ),
         ),
@@ -387,14 +388,14 @@ class _HeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(AppRadius.xl),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(AppRadius.xl),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -433,7 +434,7 @@ class _HeroCard extends StatelessWidget {
                               horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
                             color: kPrimary.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(999),
+                            borderRadius: BorderRadius.circular(AppRadius.pill),
                             border: Border.all(
                                 color: kPrimary.withValues(alpha: 0.30), width: 1),
                           ),
@@ -549,7 +550,7 @@ class _CgpaBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         color: _color.withValues(alpha: 0.12),
         border: Border.all(color: _color.withValues(alpha: 0.35), width: 1.5),
       ),
@@ -557,27 +558,17 @@ class _CgpaBadge extends StatelessWidget {
         children: [
           Text(
             'CGPA',
-            style: Theme.of(context)
-                .textTheme
-                .labelSmall
-                ?.copyWith(color: _color.withValues(alpha: 0.8)),
+            style: AppText.eyebrow(color: _color.withValues(alpha: 0.8)).copyWith(letterSpacing: 0),
           ),
           const SizedBox(height: 4),
           Text(
             cgpa.toStringAsFixed(2),
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: _color,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 26,
-                ),
+            style: AppText.title3(color: _color).copyWith(fontWeight: FontWeight.w800, fontSize: 26),
           ),
           const SizedBox(height: 4),
           Text(
             _label,
-            style: Theme.of(context)
-                .textTheme
-                .labelSmall
-                ?.copyWith(color: kTextTertiary, fontSize: 10),
+            style: AppText.caption(color: kTextTertiary),
           ),
         ],
       ),
@@ -601,7 +592,7 @@ class _InfoPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
         border: Border.all(color: accent.withValues(alpha: 0.22), width: 1),
       ),
       child: Row(
@@ -611,10 +602,7 @@ class _InfoPill extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: kTextPrimary,
-                  fontWeight: FontWeight.w500,
-                ),
+            style: AppText.footnote(color: kTextPrimary).copyWith(fontWeight: FontWeight.w500),
             overflow: TextOverflow.ellipsis,
           ),
         ],
@@ -697,18 +685,11 @@ class _DegreeRingCardState extends State<_DegreeRingCard>
                 children: [
                   Text(
                     '$pct%',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: kTextPrimary,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 22,
-                        ),
+                    style: AppText.title3(color: kTextPrimary).copyWith(fontWeight: FontWeight.w800, fontSize: 22),
                   ),
                   Text(
                     'done',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: kTextTertiary),
+                    style: AppText.footnote(color: kTextTertiary),
                   ),
                 ],
               ),
@@ -724,18 +705,12 @@ class _DegreeRingCardState extends State<_DegreeRingCard>
           const SizedBox(height: 14),
           Text(
             '${widget.analysis.earnedCredits} / 130',
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: kTextSecondary,
-                  fontWeight: FontWeight.w600,
-                ),
+            style: AppText.callout(color: kTextSecondary).copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 2),
           Text(
             'credits',
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: kTextTertiary),
+            style: AppText.footnote(color: kTextTertiary),
           ),
         ],
       ),
@@ -819,15 +794,15 @@ class _ActionButtonState extends State<_ActionButton> {
       onTapCancel: () => setState(() => _pressed = false),
       child: AnimatedScale(
         scale: _pressed ? 0.96 : 1.0,
-        duration: const Duration(milliseconds: 100),
+        duration: AppDurations.fast,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
             child: Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -846,7 +821,7 @@ class _ActionButtonState extends State<_ActionButton> {
                     height: 44,
                     decoration: BoxDecoration(
                       color: widget.accent.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Icon(widget.icon,
                         color: widget.accent, size: 22),
@@ -984,11 +959,7 @@ class _Level2Highlights extends StatelessWidget {
       children: [
         Text(
           'ADVANCED ANALYSIS',
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: kPrimary,
-                letterSpacing: 1.4,
-                fontWeight: FontWeight.w700,
-              ),
+          style: AppText.eyebrow().copyWith(letterSpacing: 1.4),
         ),
         const SizedBox(height: 12),
         if (waiverEligible)
@@ -1066,14 +1037,13 @@ class _RecentCourses extends StatelessWidget {
                 minimumSize: const Size(0, 32),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text('View all',
-                      style: TextStyle(
-                          fontSize: 13, fontWeight: FontWeight.w600)),
-                  SizedBox(width: 4),
-                  Icon(Icons.arrow_forward_ios_rounded, size: 12),
+                      style: AppText.subheadline(color: kPrimary).copyWith(fontWeight: FontWeight.w600)),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.arrow_forward_ios_rounded, size: 12),
                 ],
               ),
             ),
@@ -1113,8 +1083,7 @@ class _RecentCourses extends StatelessWidget {
                 style: TextButton.styleFrom(foregroundColor: kPrimary),
                 child: Text(
                   'See all ${courses.length} courses →',
-                  style: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w600),
+                  style: AppText.subheadline().copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -1141,7 +1110,7 @@ class _CourseTile extends StatelessWidget {
             height: 44,
             decoration: BoxDecoration(
               color: gradeColor(course.grade).withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Center(
               child: Text(
@@ -1151,12 +1120,7 @@ class _CourseTile extends StatelessWidget {
                         0,
                         course.subjectCode.length.clamp(0, 3),
                       ),
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: gradeColor(course.grade),
-                  fontFamily: 'Outfit',
-                ),
+                style: AppText.eyebrow(color: gradeColor(course.grade)).copyWith(letterSpacing: 0),
               ),
             ),
           ),
@@ -1170,10 +1134,7 @@ class _CourseTile extends StatelessWidget {
                   children: [
                     Text(
                       course.code,
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: kTextPrimary,
-                            fontWeight: FontWeight.w700,
-                          ),
+                      style: AppText.callout(color: kTextPrimary).copyWith(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(width: 6),
                     if (course.isFailed)
@@ -1185,9 +1146,7 @@ class _CourseTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   course.name.isNotEmpty ? course.name : course.semester,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: kTextSecondary,
-                      ),
+                  style: AppText.footnote(color: kTextSecondary),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -1227,16 +1186,11 @@ class _MiniTag extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(AppRadius.xs / 2),
       ),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 9,
-          fontWeight: FontWeight.w700,
-          color: color,
-          fontFamily: 'Outfit',
-        ),
+        style: AppText.caption(color: color).copyWith(fontWeight: FontWeight.w700),
       ),
     );
   }
@@ -1283,20 +1237,14 @@ class _GraduationStatus extends StatelessWidget {
               children: [
                 Text(
                   isReady ? '🎓 Ready to Graduate!' : 'On Track',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: kTextPrimary,
-                        fontWeight: FontWeight.w800,
-                      ),
+                  style: AppText.headline(color: kTextPrimary).copyWith(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   isReady
                       ? 'You have completed all required credits. Congratulations!'
                       : 'You need ${analysis.remainingCredits} more credits to complete your degree.',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: kTextSecondary, height: 1.5),
+                  style: AppText.footnote(color: kTextSecondary).copyWith(height: 1.5),
                 ),
               ],
             ),

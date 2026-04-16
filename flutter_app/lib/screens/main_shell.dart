@@ -37,10 +37,8 @@ class _MainShellState extends State<MainShell> {
 
   // ── Navigation items ──────────────────────────────────────────────────────
   //
-  // Reordered so the core user-facing flows (viewing results and uploading a
-  // transcript) occupy the primary / centre positions. Health — which is a
-  // diagnostic / admin surface rather than a daily-use feature — is pushed to
-  // the trailing position of the bar.
+  // Only core user-facing flows occupy the pill bar. Health — a diagnostic /
+  // admin surface — is accessible via the profile menu instead.
   static const List<_NavItem> _navItems = [
     _NavItem(
       label: 'Results',
@@ -60,19 +58,12 @@ class _MainShellState extends State<MainShell> {
       activeIcon: Icons.menu_book_rounded,
       accent: AppColors.accent,
     ),
-    _NavItem(
-      label: 'Health',
-      icon: Icons.monitor_heart_outlined,
-      activeIcon: Icons.monitor_heart_rounded,
-      accent: AppColors.warning,
-    ),
   ];
 
   static const List<Widget> _screens = [
     DashboardScreen(),
     UploadScreen(),
     CoursesScreen(),
-    HealthScreen(),
   ];
 
   @override
@@ -143,9 +134,8 @@ class _MainShellState extends State<MainShell> {
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
             const AuthScreen(),
-        transitionsBuilder:
-            (context, animation, secondaryAnimation, child) =>
-                FadeTransition(opacity: animation, child: child),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            FadeTransition(opacity: animation, child: child),
         transitionDuration: const Duration(milliseconds: 400),
       ),
       (_) => false,
@@ -160,6 +150,11 @@ class _MainShellState extends State<MainShell> {
       case 'history':
         Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => const HistoryScreen()),
+        );
+        break;
+      case 'health':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const HealthScreen()),
         );
         break;
       case 'signin':
@@ -219,7 +214,8 @@ class _MainShellState extends State<MainShell> {
       systemOverlayStyle: SystemUiOverlayStyle.light,
       titleSpacing: AppSpacing.pageGutter,
       toolbarHeight: 64,
-      title: _BrandRow(activeLabel: activeItem.label, accent: activeItem.accent),
+      title:
+          _BrandRow(activeLabel: activeItem.label, accent: activeItem.accent),
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: AppSpacing.pageGutter),
@@ -332,6 +328,15 @@ class _ProfileMenu extends StatelessWidget {
             ),
             const PopupMenuDivider(),
             const PopupMenuItem<String>(
+              value: 'health',
+              child: _MenuRow(
+                icon: Icons.monitor_heart_outlined,
+                label: 'System Health',
+                color: AppColors.warning,
+              ),
+            ),
+            const PopupMenuDivider(),
+            const PopupMenuItem<String>(
               value: 'signin',
               child: _MenuRow(
                 icon: Icons.login_rounded,
@@ -363,6 +368,15 @@ class _ProfileMenu extends StatelessWidget {
               color: AppColors.primary,
             ),
           ),
+          const PopupMenuItem<String>(
+            value: 'health',
+            child: _MenuRow(
+              icon: Icons.monitor_heart_outlined,
+              label: 'System Health',
+              color: AppColors.warning,
+            ),
+          ),
+          const PopupMenuDivider(),
           const PopupMenuItem<String>(
             value: 'logout',
             child: _MenuRow(
@@ -534,7 +548,7 @@ class _PillNavBar extends StatelessWidget {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
               child: Container(
-                height: 68,
+                height: 64,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(AppRadius.pill),
                   gradient: LinearGradient(
@@ -563,8 +577,7 @@ class _PillNavBar extends StatelessWidget {
                       child: AnimatedContainer(
                         duration: AppDurations.base,
                         decoration: BoxDecoration(
-                          borderRadius:
-                              BorderRadius.circular(AppRadius.pill),
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
@@ -661,8 +674,7 @@ class _PillNavItem extends StatelessWidget {
                 AnimatedDefaultTextStyle(
                   duration: AppDurations.base,
                   style: AppText.caption(color: color).copyWith(
-                    fontWeight:
-                        isSelected ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   ),
                   child: Text(
                     item.label,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../design/app_design.dart';
 import '../services/analysis_session_service.dart';
 import '../services/api_service.dart';
 import '../services/supabase_service.dart' hide ApiException;
@@ -179,7 +180,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(AppSpacing.pageGutter, 18, AppSpacing.pageGutter, AppSpacing.bottomSafePad),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.pageGutter, 18,
+                AppSpacing.pageGutter, AppSpacing.bottomSafePad),
             child: buildContent(context),
           ),
         ],
@@ -188,7 +190,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget buildContent(BuildContext context) {
-    final theme = Theme.of(context);
     final info = asMap(data?['ocr_info']);
     final level1 = asMap(data?['level1']);
     final level2 = asMap(data?['level2']);
@@ -231,8 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
           title: errorMessage != null
               ? 'Results unavailable'
               : 'No transcript analysis yet',
-          subtitle:
-              errorMessage ??
+          subtitle: errorMessage ??
               'Upload a transcript and this screen will show the same backend OCR result structure as the website.',
           accent: errorMessage != null ? kError : kPrimary,
           action: Column(
@@ -275,7 +275,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                       gradient: const LinearGradient(
                         colors: [Color(0xFF0066CC), Color(0xFF0284C7)],
                       ),
@@ -290,18 +290,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Backend OCR Results',
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                        Text(studentName, style: theme.textTheme.titleLarge),
+                        Text('Backend OCR Results',
+                            style: AppText.subheadline()),
+                        Text(studentName, style: AppText.title3()),
                         if (departmentName.isNotEmpty)
-                          Text(
-                            departmentName,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: kTextSecondary,
-                            ),
-                          ),
+                          Text(departmentName,
+                              style: AppText.footnote(color: kTextSecondary)),
                       ],
                     ),
                   ),
@@ -309,7 +303,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     PopupMenuButton<String>(
                       offset: const Offset(0, 40),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -326,10 +320,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ? user!.displayName[0].toUpperCase()
                                             : '?')
                                         .toString(),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                                    style: AppText.callout(color: Colors.white)
+                                        .copyWith(fontWeight: FontWeight.w700),
                                   )
                                 : null,
                           ),
@@ -373,7 +365,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   else
                     InkWell(
                       onTap: _isSigningIn ? null : _handleGoogleSignIn,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -383,7 +375,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           gradient: const LinearGradient(
                             colors: [Color(0xFF4285F4), Color(0xFF1a73e8)],
                           ),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(AppRadius.lg),
                         ),
                         child: _isSigningIn
                             ? const SizedBox(
@@ -394,22 +386,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                   color: Colors.white,
                                 ),
                               )
-                            : const Row(
+                            : Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     Icons.login,
                                     size: 16,
                                     color: Colors.white,
                                   ),
-                                  SizedBox(width: 6),
+                                  const SizedBox(width: 6),
                                   Text(
                                     'Sign in',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                    style: AppText.caption(color: Colors.white)
+                                        .copyWith(fontWeight: FontWeight.w600),
                                   ),
                                 ],
                               ),
@@ -419,12 +408,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 20),
               Text(
-                'This screen renders the same backend-produced OCR and audit output shape used by the website.',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  fontSize: 15,
-                  height: 1.5,
-                ),
-              ),
+                  'This screen renders the same backend-produced OCR and audit output shape used by the website.',
+                  style: AppText.body().copyWith(height: 1.5)),
               const SizedBox(height: 16),
               Wrap(
                 spacing: 10,
@@ -458,9 +443,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Processed on backend and stored in the active analysis session.',
-                        style: theme.textTheme.bodyMedium,
-                      ),
+                          'Processed on backend and stored in the active analysis session.',
+                          style: AppText.subheadline()),
                     ),
                   ],
                 ),
@@ -568,7 +552,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('OCR Details', style: theme.textTheme.titleMedium),
+              Text('OCR Details', style: AppText.headline()),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 10,
@@ -716,32 +700,23 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Text(
-            'Graduation runway',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: Colors.white),
-          ),
+          Text('Graduation runway',
+              style: AppText.headline(color: kTextPrimary)),
           const SizedBox(height: 10),
           LinearProgressIndicator(
             value: (asDouble(level1['progress_130']) / 100).clamp(0, 1),
             minHeight: 14,
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
             backgroundColor: Colors.white.withValues(alpha: 0.08),
           ),
           const SizedBox(height: 10),
           Text(
-            '${asDouble(level1['earned_credits']).toStringAsFixed(1)} of 130 credits completed • ${asDouble(level1['progress_130']).toStringAsFixed(1)}%',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
+              '${asDouble(level1['earned_credits']).toStringAsFixed(1)} of 130 credits completed • ${asDouble(level1['progress_130']).toStringAsFixed(1)}%',
+              style: AppText.subheadline()),
           if (retakes.isNotEmpty) ...[
             const SizedBox(height: 18),
-            Text(
-              'Retake intelligence',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(color: Colors.white),
-            ),
+            Text('Retake intelligence',
+                style: AppText.headline(color: kTextPrimary)),
             const SizedBox(height: 10),
             ...retakes.map((item) {
               final retake = asMap(item);
@@ -751,12 +726,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        asString(retake['code']),
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleMedium?.copyWith(color: Colors.white),
-                      ),
+                      Text(asString(retake['code']),
+                          style: AppText.headline(color: kTextPrimary)),
                       const SizedBox(height: 6),
                       Wrap(
                         spacing: 6,
@@ -816,32 +787,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Academic standing: ${asString(level2['standing']).isEmpty ? 'Not available' : asString(level2['standing'])}',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleMedium?.copyWith(color: Colors.white),
-                  ),
+                      'Academic standing: ${asString(level2['standing']).isEmpty ? 'Not available' : asString(level2['standing'])}',
+                      style: AppText.headline(color: kTextPrimary)),
                 ),
                 Text(
                   asString(level2['stars']),
-                  style: const TextStyle(fontSize: 20),
+                  style: AppText.title3().copyWith(fontSize: 20),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 16),
-          Text(
-            'Grade distribution',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: Colors.white),
-          ),
+          Text('Grade distribution',
+              style: AppText.headline(color: kTextPrimary)),
           const SizedBox(height: 10),
           if (gradeDistribution.isEmpty)
-            Text(
-              'No grade distribution available.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            )
+            Text('No grade distribution available.',
+                style: AppText.subheadline())
           else
             Wrap(
               spacing: 10,
@@ -926,22 +888,16 @@ class _HomeScreenState extends State<HomeScreen> {
             body: level3['graduation_ready'] == true
                 ? 'This audit looks graduation-ready based on the available rules and credits.'
                 : asString(level3['note']).isNotEmpty
-                ? asString(level3['note'])
-                : 'Mandatory and elective requirements still need attention.',
+                    ? asString(level3['note'])
+                    : 'Mandatory and elective requirements still need attention.',
           ),
           const SizedBox(height: 16),
-          Text(
-            'Missing mandatory courses',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: Colors.white),
-          ),
+          Text('Missing mandatory courses',
+              style: AppText.headline(color: kTextPrimary)),
           const SizedBox(height: 10),
           if (missingMandatory.isEmpty)
-            Text(
-              'No mandatory gaps were found from the loaded knowledge base.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            )
+            Text('No mandatory gaps were found from the loaded knowledge base.',
+                style: AppText.subheadline())
           else
             Wrap(
               spacing: 8,
@@ -955,18 +911,11 @@ class _HomeScreenState extends State<HomeScreen> {
               }).toList(),
             ),
           const SizedBox(height: 18),
-          Text(
-            'Elective groups',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: Colors.white),
-          ),
+          Text('Elective groups', style: AppText.headline(color: kTextPrimary)),
           const SizedBox(height: 10),
           if (electives.isEmpty)
-            Text(
-              'No elective groups were loaded for this program.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            )
+            Text('No elective groups were loaded for this program.',
+                style: AppText.subheadline())
           else
             ...electives.entries.map((entry) {
               final details = asMap(entry.value);
@@ -979,11 +928,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: Text(
-                              entry.key,
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(color: Colors.white),
-                            ),
+                            child: Text(entry.key,
+                                style: AppText.headline(color: kTextPrimary)),
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -998,7 +944,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   : const Color(
                                       0xFFF6B75D,
                                     ).withValues(alpha: 0.16),
-                              borderRadius: BorderRadius.circular(999),
+                              borderRadius:
+                                  BorderRadius.circular(AppRadius.pill),
                             ),
                             child: Text(
                               details['satisfied'] == true
@@ -1044,10 +991,8 @@ class _HomeScreenState extends State<HomeScreen> {
           titleLine('Semester timeline'),
           const SizedBox(height: 12),
           if (semesters.isEmpty)
-            Text(
-              'No semester grouping is available.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            )
+            Text('No semester grouping is available.',
+                style: AppText.subheadline())
           else
             ...semesters.map((item) {
               final semester = asMap(item);
@@ -1062,12 +1007,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              asString(semester['name']).isEmpty
-                                  ? 'Semester'
-                                  : asString(semester['name']),
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(color: Colors.white),
-                            ),
+                                asString(semester['name']).isEmpty
+                                    ? 'Semester'
+                                    : asString(semester['name']),
+                                style: AppText.headline(color: kTextPrimary)),
                           ),
                           Text('${courses.length} courses'),
                         ],
@@ -1080,11 +1023,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Row(
                             children: [
                               Expanded(
-                                child: Text(
-                                  asString(course['code']),
-                                  style: Theme.of(context).textTheme.bodyLarge
-                                      ?.copyWith(color: Colors.white),
-                                ),
+                                child: Text(asString(course['code']),
+                                    style: AppText.body(color: kTextPrimary)),
                               ),
                               Text(
                                 '${asDouble(course['credits']).toStringAsFixed(1)} cr',
@@ -1135,18 +1075,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Text(
-            'Extracted text preview',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: Colors.white),
-          ),
+          Text('Extracted text preview',
+              style: AppText.headline(color: kTextPrimary)),
           const SizedBox(height: 10),
           if (extractedTexts.isEmpty)
-            Text(
-              'No extracted raw text was returned.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            )
+            Text('No extracted raw text was returned.',
+                style: AppText.subheadline())
           else
             ...extractedTexts.take(12).map((line) {
               final text = asString(line).trim();
@@ -1156,12 +1090,9 @@ class _HomeScreenState extends State<HomeScreen> {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: GlassTone(
-                  child: Text(
-                    text,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: const Color(0xFFE5F3FF),
-                    ),
-                  ),
+                  child: Text(text,
+                      style:
+                          AppText.subheadline(color: const Color(0xFFE5F3FF))),
                 ),
               );
             }),
@@ -1175,7 +1106,7 @@ class _HomeScreenState extends State<HomeScreen> {
       height: height,
       width: double.infinity,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         color: kSurface,
       ),
       child: ShimmerBox(height: height, borderRadius: 20),
@@ -1194,12 +1125,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const SizedBox(width: 10),
-        Text(
-          title,
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(color: Colors.white),
-        ),
+        Text(title, style: AppText.title3(color: kTextPrimary)),
       ],
     );
   }

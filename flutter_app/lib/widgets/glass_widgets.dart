@@ -150,8 +150,8 @@ ThemeData buildAppTheme() {
         backgroundColor: kPrimary,
         foregroundColor: AppColors.textInverse,
         elevation: 0,
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg, vertical: 14),
+        padding:
+            const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 14),
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md)),
         textStyle: AppText.headline(color: AppColors.textInverse).copyWith(
@@ -163,8 +163,8 @@ ThemeData buildAppTheme() {
       style: OutlinedButton.styleFrom(
         foregroundColor: kPrimary,
         side: const BorderSide(color: kPrimary, width: 1.4),
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg, vertical: 14),
+        padding:
+            const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 14),
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md)),
         textStyle: AppText.headline(color: AppColors.primary),
@@ -174,8 +174,8 @@ ThemeData buildAppTheme() {
       style: FilledButton.styleFrom(
         backgroundColor: kPrimary,
         foregroundColor: AppColors.textInverse,
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg, vertical: 14),
+        padding:
+            const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 14),
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md)),
         textStyle: AppText.headline(color: AppColors.textInverse).copyWith(
@@ -328,7 +328,7 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final br = borderRadius ?? BorderRadius.circular(20);
+    final br = borderRadius ?? BorderRadius.circular(AppRadius.lg);
     return ClipRRect(
       borderRadius: br,
       child: BackdropFilter(
@@ -338,8 +338,7 @@ class GlassCard extends StatelessWidget {
           padding: padding ?? const EdgeInsets.all(20),
           decoration: BoxDecoration(
             borderRadius: br,
-            gradient:
-                gradient ??
+            gradient: gradient ??
                 LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -348,8 +347,7 @@ class GlassCard extends StatelessWidget {
                     Colors.white.withValues(alpha: 0.03),
                   ],
                 ),
-            border:
-                border ??
+            border: border ??
                 Border.all(
                   color: Colors.white.withValues(alpha: 0.10),
                   width: 1,
@@ -385,7 +383,7 @@ class GlassTone extends StatelessWidget {
       padding: padding ?? const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
       child: child,
@@ -429,12 +427,12 @@ class _GradientButtonState extends State<GradientButton> {
       onTap: widget.onPressed,
       child: AnimatedScale(
         scale: _pressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 100),
+        duration: AppDurations.fast,
         child: Container(
           width: widget.width ?? double.infinity,
           height: 56,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             gradient: widget.onPressed == null
                 ? const LinearGradient(
                     colors: [Color(0xFF334155), Color(0xFF1E293B)],
@@ -517,13 +515,13 @@ class StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(AppRadius.lg),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
         child: Container(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(AppSpacing.md + 2),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -542,33 +540,19 @@ class StatCard extends StatelessWidget {
                 height: 40,
                 decoration: BoxDecoration(
                   color: accent.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Icon(icon, color: accent, size: 22),
               ),
-              const SizedBox(height: 14),
-              Text(
-                label,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: kTextSecondary),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: kTextPrimary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              const SizedBox(height: AppSpacing.sm - 2),
+              Text(label, style: AppText.footnote(color: kTextSecondary)),
+              const SizedBox(height: AppSpacing.xs),
+              Text(value,
+                  style: AppText.title3(color: kTextPrimary)
+                      .copyWith(fontWeight: FontWeight.w700)),
               if (subtitle != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  subtitle!,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: accent),
-                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(subtitle!, style: AppText.footnote(color: accent)),
               ],
             ],
           ),
@@ -605,24 +589,17 @@ class SectionHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                eyebrow.toUpperCase(),
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: kPrimary,
-                  letterSpacing: 1.6,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(title, style: Theme.of(context).textTheme.headlineSmall),
+              Text(eyebrow.toUpperCase(), style: AppText.eyebrow()),
+              const SizedBox(height: AppSpacing.xs),
+              Text(title, style: AppText.title3()),
               if (subtitle != null) ...[
-                const SizedBox(height: 4),
-                Text(subtitle!, style: Theme.of(context).textTheme.bodyMedium),
+                const SizedBox(height: AppSpacing.xs),
+                Text(subtitle!, style: AppText.subheadline()),
               ],
             ],
           ),
         ),
-        ?action,
+        if (action != null) action!,
       ],
     );
   }
@@ -640,19 +617,17 @@ class GradeChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = gradeColor(grade);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
         border: Border.all(color: color.withValues(alpha: 0.4), width: 1),
       ),
       child: Text(
         grade,
-        style: GoogleFonts.outfit(
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: color,
-        ),
+        style: AppText.subheadline(color: color)
+            .copyWith(fontWeight: FontWeight.w700),
       ),
     );
   }
@@ -680,9 +655,9 @@ class AlertBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         color: accent.withValues(alpha: 0.08),
         border: Border.all(color: accent.withValues(alpha: 0.3), width: 1),
       ),
@@ -690,10 +665,10 @@ class AlertBox extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(AppSpacing.xs * 2),
             decoration: BoxDecoration(
               color: accent.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppRadius.xs + 2),
             ),
             child: Icon(icon, color: accent, size: 20),
           ),
@@ -702,20 +677,11 @@ class AlertBox extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: kTextPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  body,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: kTextSecondary),
-                ),
+                Text(title,
+                    style: AppText.callout(color: kTextPrimary)
+                        .copyWith(fontWeight: FontWeight.w600)),
+                const SizedBox(height: AppSpacing.xs),
+                Text(body, style: AppText.footnote(color: kTextSecondary)),
               ],
             ),
           ),
@@ -747,10 +713,11 @@ class DataPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = accent ?? kPrimary;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm + 6, vertical: AppSpacing.sm + 4),
       decoration: BoxDecoration(
         color: c.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.sm + 2),
         border: Border.all(color: c.withValues(alpha: 0.20), width: 1),
       ),
       child: Row(
@@ -761,18 +728,10 @@ class DataPill extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: kTextTertiary),
-              ),
-              Text(
-                value,
-                style: Theme.of(
-                  context,
-                ).textTheme.labelLarge?.copyWith(color: kTextPrimary),
-              ),
+              Text(label, style: AppText.footnote(color: kTextTertiary)),
+              Text(value,
+                  style: AppText.callout(color: kTextPrimary)
+                      .copyWith(fontWeight: FontWeight.w600)),
             ],
           ),
         ],
@@ -799,29 +758,21 @@ class SmallMetric extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm + 6, vertical: AppSpacing.sm + 4),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         border: Border.all(color: kBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: kTextTertiary),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: accent ?? kTextPrimary,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          Text(label, style: AppText.footnote(color: kTextTertiary)),
+          const SizedBox(height: AppSpacing.xs),
+          Text(value,
+              style: AppText.headline(color: accent ?? kTextPrimary)
+                  .copyWith(fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -840,23 +791,15 @@ class StripMetric extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 2),
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              label,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: kTextSecondary),
-            ),
-          ),
-          Text(
-            value,
-            style: Theme.of(
-              context,
-            ).textTheme.labelLarge?.copyWith(color: kTextPrimary),
-          ),
+              child: Text(label,
+                  style: AppText.subheadline(color: kTextSecondary))),
+          Text(value,
+              style: AppText.callout(color: kTextPrimary)
+                  .copyWith(fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -882,10 +825,11 @@ class FeatureChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = accent ?? kPrimary;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm + 6, vertical: AppSpacing.sm + 2),
       decoration: BoxDecoration(
         color: c.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
         border: Border.all(color: c.withValues(alpha: 0.25)),
       ),
       child: Row(
@@ -895,11 +839,8 @@ class FeatureChip extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             label,
-            style: GoogleFonts.outfit(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: kTextPrimary,
-            ),
+            style: AppText.subheadline(color: kTextPrimary)
+                .copyWith(fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -936,7 +877,7 @@ class ProcessingPanel extends StatelessWidget {
                 height: 42,
                 decoration: BoxDecoration(
                   color: kPrimary.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: const Icon(
                   Icons.document_scanner_rounded,
@@ -949,27 +890,19 @@ class ProcessingPanel extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      stage ?? 'Processing Transcript',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: kTextPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      message,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: kTextSecondary),
-                    ),
+                    Text(stage ?? 'Processing Transcript',
+                        style: AppText.callout(color: kTextPrimary)
+                            .copyWith(fontWeight: FontWeight.w600)),
+                    Text(message,
+                        style: AppText.footnote(color: kTextSecondary)),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppSpacing.md + 4),
           ClipRRect(
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 8,
@@ -977,16 +910,12 @@ class ProcessingPanel extends StatelessWidget {
               valueColor: const AlwaysStoppedAnimation<Color>(kPrimary),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: AppSpacing.sm + 2),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '${(progress * 100).round()}% complete',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: kTextTertiary),
-              ),
+              Text('${(progress * 100).round()}% complete',
+                  style: AppText.footnote(color: kTextTertiary)),
               if (progress < 1.0)
                 SizedBox(
                   width: 14,
@@ -1166,21 +1095,16 @@ class EmptyState extends StatelessWidget {
               ),
               child: Icon(icon, size: 48, color: c),
             ),
-            const SizedBox(height: 24),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              subtitle,
-              textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: kTextSecondary),
-            ),
-            if (action != null) ...[const SizedBox(height: 28), action!],
+            const SizedBox(height: AppSpacing.lg),
+            Text(title, textAlign: TextAlign.center, style: AppText.title3()),
+            const SizedBox(height: AppSpacing.sm + 2),
+            Text(subtitle,
+                textAlign: TextAlign.center,
+                style: AppText.subheadline(color: kTextSecondary)),
+            if (action != null) ...[
+              const SizedBox(height: AppSpacing.lg + 4),
+              action!
+            ],
           ],
         ),
       ),
@@ -1249,13 +1173,8 @@ class LabeledDivider extends StatelessWidget {
       children: [
         const Expanded(child: Divider(color: kBorder)),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          child: Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: kTextTertiary),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm + 6),
+          child: Text(label, style: AppText.footnote(color: kTextTertiary)),
         ),
         const Expanded(child: Divider(color: kBorder)),
       ],
