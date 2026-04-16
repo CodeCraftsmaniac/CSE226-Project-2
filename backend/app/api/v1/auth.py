@@ -490,11 +490,13 @@ async def get_user_info(
     
     Requires valid authentication token.
     """
-    get_current_user, _, get_db_user_id, DB_MODULE_AVAILABLE, _ = get_dependencies()
+    get_current_user, get_current_user_optional, get_db_user_id, DB_MODULE_AVAILABLE, _ = get_dependencies()
     _, _, _, get_user_stats, _ = get_db_functions()
     
     # Get user from auth
-    user = await get_current_user(authorization)
+    user = await get_current_user_optional(authorization)
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
     
     # Get or create db_id for history queries
     db_user_id = None
@@ -734,10 +736,12 @@ async def get_current_user_me(
     
     Returns current authenticated user info.
     """
-    get_current_user, _, get_db_user_id, DB_MODULE_AVAILABLE, _ = get_dependencies()
+    get_current_user, get_current_user_optional, get_db_user_id, DB_MODULE_AVAILABLE, _ = get_dependencies()
     _, _, _, get_user_stats, _ = get_db_functions()
     
-    user = await get_current_user(authorization)
+    user = await get_current_user_optional(authorization)
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
     
     db_user_id = None
     try:
