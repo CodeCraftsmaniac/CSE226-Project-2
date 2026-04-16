@@ -1,19 +1,5 @@
-# Dependabot configuration
-# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
-
 version: 2
 updates:
-  # Python dependencies (pip)
-  - package-ecosystem: "pip"
-    directory: "/Project 2 (CLI, Flutter App, WebApp)"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "python"
-
-  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -23,9 +9,35 @@ updates:
       - "dependencies"
       - "github-actions"
 
-  # npm - root (Supabase JS client)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "python"
+
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "python"
+
+  - package-ecosystem: "pip"
+    directory: "/web_app"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "python"
+
   - package-ecosystem: "npm"
-    directory: "/Project 2 (CLI, Flutter App, WebApp)"
+    directory: "/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 3
@@ -33,9 +45,8 @@ updates:
       - "dependencies"
       - "javascript"
 
-  # npm - MCP server
   - package-ecosystem: "npm"
-    directory: "/Project 2 (CLI, Flutter App, WebApp)/mcp_server"
+    directory: "/mcp_server"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 3
@@ -43,9 +54,17 @@ updates:
       - "dependencies"
       - "javascript"
 
-  # Flutter/Dart (pub)
+  - package-ecosystem: "npm"
+    directory: "/web_app"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "javascript"
+
   - package-ecosystem: "pub"
-    directory: "/Project 2 (CLI, Flutter App, WebApp)/flutter_app"
+    directory: "/flutter_app"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 3

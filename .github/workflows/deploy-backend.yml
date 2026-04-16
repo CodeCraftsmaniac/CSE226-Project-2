@@ -9,9 +9,8 @@ on:
     branches: [main]
     paths:
       - 'backend/**'
-      - 'requirements.txt'
-      - 'Dockerfile'
       - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
 
 env:
   PROJECT_ID: galvanic-deck-478816-u9
@@ -37,7 +36,7 @@ jobs:
       - name: Deploy to Cloud Run from source
         run: |
           gcloud run deploy $SERVICE_NAME \
-            --source . \
+            --source ./backend \
             --platform managed \
             --region $REGION \
             --allow-unauthenticated \
@@ -68,5 +67,5 @@ jobs:
       - name: Verify deployment
         run: |
           sleep 15
-          curl -f $SERVICE_URL/health || exit 1
+          curl -f $SERVICE_URL/health/live || exit 1
           echo "✅ Backend deployment verified"

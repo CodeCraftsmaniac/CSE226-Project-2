@@ -1,0 +1,49 @@
+name: Deploy Frontend to Vercel
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web_app/**'
+      - '.github/workflows/deploy-frontend.yml'
+      - 'web_app/vercel.json'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Ensure Vercel token exists
+        run: |
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            echo "::error::Missing repository secret VERCEL_TOKEN"
+            exit 1
+          fi
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Link project
+        working-directory: web_app
+        run: |
+          vercel link --yes \
+            --project cse226-project-frontend \
+            --scope adamjeeans-projects \
+            --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Pull production environment
+        working-directory: web_app
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to production
+        working-directory: web_app
+        run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
