@@ -34,14 +34,18 @@ jobs:
 
       - name: Link project
         run: |
+          cd web_app
           vercel link --yes \
             --project cse226-project-frontend \
             --scope adamjeeans-projects \
-            --token=${{ secrets.VERCEL_TOKEN }} \
-            --cwd web_app
+            --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Pull production environment
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} --cwd web_app
+        run: |
+          cd web_app
+          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy to production
-        run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }} --cwd web_app
+        run: |
+          cd web_app
+          vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
