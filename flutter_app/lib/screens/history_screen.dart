@@ -229,42 +229,55 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: kBackground,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1E293B)),
+          icon: const Icon(Icons.arrow_back_rounded, color: kTextPrimary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Scan History',
-          style: TextStyle(
-            color: Color(0xFF1E293B),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        title: Text('Scan History', style: AppText.title3()),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF64748B)),
+            tooltip: 'Refresh',
+            icon: const Icon(Icons.refresh_rounded, color: kTextSecondary),
             onPressed: _loadHistory,
           ),
         ],
       ),
-      body: _buildBody(),
+      body: Stack(
+        children: [
+          const Positioned(
+            top: -80,
+            right: -60,
+            child: AuroraBlob(color: kPrimary, size: 240),
+          ),
+          const Positioned(
+            bottom: -100,
+            left: -60,
+            child: AuroraBlob(color: kSuccess, size: 220),
+          ),
+          SafeArea(child: _buildBody()),
+        ],
+      ),
     );
   }
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Loading your scan history...'),
+            const CircularProgressIndicator(strokeWidth: 2.4),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Loading your scan history…',
+              style: AppText.subheadline(),
+            ),
           ],
         ),
       );
@@ -272,19 +285,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     if (_error != null) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
-            const SizedBox(height: 16),
-            Text('Error: $_error'),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: _loadHistory,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline_rounded,
+                  size: 56, color: kError),
+              const SizedBox(height: AppSpacing.md),
+              Text('Something went wrong',
+                  style: AppText.title3(), textAlign: TextAlign.center),
+              const SizedBox(height: AppSpacing.xs),
+              Text(_error!,
+                  textAlign: TextAlign.center,
+                  style: AppText.subheadline()),
+              const SizedBox(height: AppSpacing.lg),
+              FilledButton.icon(
+                onPressed: _loadHistory,
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Retry'),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -292,32 +314,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
     if (!authService.isAuthenticated) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.lock_outline, size: 64, color: Color(0xFF94A3B8)),
-              const SizedBox(height: 16),
-              const Text(
-                'Sign in to view your scan history',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              const Text(
+              const Icon(Icons.lock_outline_rounded,
+                  size: 56, color: kTextSecondary),
+              const SizedBox(height: AppSpacing.md),
+              Text('Sign in to view your scan history',
+                  style: AppText.title3(), textAlign: TextAlign.center),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
                 'Your past transcript scans will appear here after you sign in with Google.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Color(0xFF64748B)),
+                style: AppText.subheadline(),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.lg),
               FilledButton.icon(
                 onPressed: () async {
                   await authService.signInWithGoogle();
-                  if (authService.isAuthenticated) {
-                    _loadHistory();
-                  }
+                  if (authService.isAuthenticated) _loadHistory();
                 },
-                icon: const Icon(Icons.login),
+                icon: const Icon(Icons.login_rounded),
                 label: const Text('Sign in with Google'),
               ),
             ],
@@ -329,26 +347,24 @@ class _HistoryScreenState extends State<HistoryScreen> {
     if (_scans.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.history, size: 64, color: Color(0xFF94A3B8)),
-              const SizedBox(height: 16),
-              const Text(
-                'No scans yet',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              const Text(
+              const Icon(Icons.history_rounded,
+                  size: 56, color: kTextSecondary),
+              const SizedBox(height: AppSpacing.md),
+              Text('No scans yet', style: AppText.title3()),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
                 'Upload your first transcript to see it here.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Color(0xFF64748B)),
+                style: AppText.subheadline(),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.lg),
               FilledButton.icon(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.upload_file),
+                icon: const Icon(Icons.upload_file_rounded),
                 label: const Text('Upload Transcript'),
               ),
             ],
@@ -359,8 +375,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     return RefreshIndicator(
       onRefresh: _loadHistory,
+      color: kPrimary,
+      backgroundColor: kSurface,
       child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.pageGutter,
+          AppSpacing.md,
+          AppSpacing.pageGutter,
+          AppSpacing.xl,
+        ),
         itemCount: _scans.length,
         itemBuilder: (context, index) {
           final scan = _scans[index];
@@ -372,117 +395,115 @@ class _HistoryScreenState extends State<HistoryScreen> {
           final scanId = scan['id'] as String;
           final source = scan['source'] ?? 'web';
 
+          final cgpaColor = _getCgpaColor(cgpa);
           return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm + 4),
             child: GlassCard(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Header row
                   Row(
                     children: [
-                      // File icon
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(12),
+                          color: kPrimary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
+                          border: Border.all(
+                              color: kPrimary.withValues(alpha: 0.18)),
                         ),
-                        child: const Icon(
-                          Icons.description,
-                          color: Color(0xFF3B82F6),
-                          size: 24,
-                        ),
+                        child: const Icon(Icons.description_rounded,
+                            color: kPrimary, size: 22),
                       ),
-                      const SizedBox(width: 12),
-                      // File info
+                      const SizedBox(width: AppSpacing.sm + 4),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               filename,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15,
-                              ),
+                              style: AppText.headline(),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 2),
                             Row(
                               children: [
-                                Icon(
-                                  Icons.access_time,
-                                  size: 14,
-                                  color: const Color(0xFF64748B),
-                                ),
+                                const Icon(Icons.access_time_rounded,
+                                    size: 13, color: kTextTertiary),
                                 const SizedBox(width: 4),
-                                Text(
-                                  _formatDate(createdAt),
-                                  style: const TextStyle(
-                                    color: Color(0xFF64748B),
-                                    fontSize: 13,
+                                Flexible(
+                                  child: Text(
+                                    _formatDate(createdAt),
+                                    style: AppText.footnote(),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: AppSpacing.sm),
                                 _buildSourceChip(source),
                               ],
                             ),
                           ],
                         ),
                       ),
-                      // CGPA badge
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm + 4, vertical: 6),
                         decoration: BoxDecoration(
-                          color: _getCgpaColor(cgpa).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: _getCgpaColor(cgpa).withValues(alpha: 0.3)),
+                          color: cgpaColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(AppRadius.xs),
+                          border: Border.all(
+                              color: cgpaColor.withValues(alpha: 0.35)),
                         ),
                         child: Text(
                           cgpa.toStringAsFixed(2),
-                          style: TextStyle(
-                            color: _getCgpaColor(cgpa),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
+                          style: AppText.headline(color: cgpaColor)
+                              .copyWith(fontWeight: FontWeight.w700),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  // Stats row
-                  Row(
+                  const SizedBox(height: AppSpacing.sm + 4),
+                  Wrap(
+                    spacing: AppSpacing.sm,
+                    runSpacing: AppSpacing.sm,
                     children: [
-                      _buildStatPill(Icons.book, '$totalCourses courses'),
-                      const SizedBox(width: 8),
-                      _buildStatPill(Icons.school, '${totalCredits.toStringAsFixed(0)} credits'),
+                      _buildStatPill(
+                          Icons.menu_book_rounded, '$totalCourses courses'),
+                      _buildStatPill(Icons.school_rounded,
+                          '${totalCredits.toStringAsFixed(0)} credits'),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  // Action buttons
+                  const SizedBox(height: AppSpacing.sm + 4),
                   Row(
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () => _deleteScan(scanId, index),
-                          icon: const Icon(Icons.delete_outline, size: 18),
+                          icon: const Icon(Icons.delete_outline_rounded,
+                              size: 18),
                           label: const Text('Delete'),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.red,
-                            side: const BorderSide(color: Colors.red),
+                            foregroundColor: kError,
+                            side: BorderSide(
+                                color: kError.withValues(alpha: 0.4)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: AppSpacing.sm + 4),
                       Expanded(
                         flex: 2,
                         child: FilledButton.icon(
                           onPressed: () => _viewScanDetails(scanId),
-                          icon: const Icon(Icons.visibility, size: 18),
+                          icon: const Icon(Icons.visibility_rounded,
+                              size: 18),
                           label: const Text('View Analysis'),
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
                         ),
                       ),
                     ],
@@ -518,8 +539,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppRadius.xs / 2),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -528,11 +549,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
           const SizedBox(width: 3),
           Text(
             source,
-            style: TextStyle(
-              color: color,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
+            style: AppText.caption(color: color)
+                .copyWith(fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -543,22 +561,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(6),
+        color: kSurfaceHigh,
+        borderRadius: BorderRadius.circular(AppRadius.xs),
+        border: Border.all(color: kBorder),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: const Color(0xFF64748B)),
+          Icon(icon, size: 14, color: kTextSecondary),
           const SizedBox(width: 4),
-          Text(
-            text,
-            style: const TextStyle(
-              color: Color(0xFF64748B),
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          Text(text, style: AppText.footnote(color: AppColors.textSecondary)),
         ],
       ),
     );

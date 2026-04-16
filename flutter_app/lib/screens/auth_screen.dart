@@ -139,11 +139,8 @@ class _AuthScreenState extends State<AuthScreen>
                     // ── App title ──
                     Text(
                       'North South University',
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: kTextSecondary,
-                            letterSpacing: 1.4,
-                            fontSize: 13,
-                          ),
+                      style: AppText.subheadline(color: AppColors.textSecondary)
+                          .copyWith(letterSpacing: 1.4),
                       textAlign: TextAlign.center,
                     )
                         .animate()
@@ -158,11 +155,12 @@ class _AuthScreenState extends State<AuthScreen>
                       ).createShader(bounds),
                       child: Text(
                         'Degree Audit',
-                        style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -1.0,
-                            ),
+                        style: AppText.largeTitle(color: Colors.white)
+                            .copyWith(
+                          fontSize: 38,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -1.0,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     )
@@ -174,10 +172,8 @@ class _AuthScreenState extends State<AuthScreen>
 
                     Text(
                       'Upload your transcript. Get a complete degree audit\nwith CGPA, credits, and graduation readiness.',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: kTextSecondary,
-                            height: 1.6,
-                          ),
+                      style: AppText.body(color: AppColors.textSecondary)
+                          .copyWith(height: 1.55),
                       textAlign: TextAlign.center,
                     )
                         .animate()
@@ -237,10 +233,8 @@ class _AuthScreenState extends State<AuthScreen>
                     // ── Privacy note ──
                     Text(
                       'By continuing, you agree to our Terms of Service\nand acknowledge our Privacy Policy.',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: kTextTertiary,
-                            height: 1.6,
-                          ),
+                      style: AppText.footnote(color: AppColors.textTertiary)
+                          .copyWith(height: 1.55),
                       textAlign: TextAlign.center,
                     )
                         .animate()
@@ -250,23 +244,25 @@ class _AuthScreenState extends State<AuthScreen>
 
                     // ── Footer badge ──
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md, vertical: 8),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.04),
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.08)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.verified_rounded, size: 14, color: kSuccess),
-                          const SizedBox(width: 8),
+                          const Icon(Icons.verified_rounded,
+                              size: 14, color: kSuccess),
+                          const SizedBox(width: AppSpacing.sm),
                           Text(
                             'NSU Degree Audit Engine  •  v1.0',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(color: kTextTertiary, fontSize: 11),
+                            style: AppText.caption(
+                              color: AppColors.textTertiary,
+                            ),
                           ),
                         ],
                       ),
@@ -289,7 +285,7 @@ class _AuthScreenState extends State<AuthScreen>
           width: 120,
           height: 120,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(36),
+            borderRadius: BorderRadius.circular(AppRadius.xxl + 4),
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -366,18 +362,14 @@ class _GuestModeButton extends StatelessWidget {
         icon: const Icon(Icons.person_outline_rounded, size: 20),
         label: Text(
           isLoading ? 'Please wait...' : 'Continue as Guest',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            fontFamily: 'Outfit',
-          ),
+          style: AppText.headline(color: AppColors.textSecondary),
         ),
         style: OutlinedButton.styleFrom(
           minimumSize: const Size.fromHeight(54),
           foregroundColor: kTextSecondary,
           side: BorderSide(color: Colors.white.withValues(alpha: 0.24)),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           backgroundColor: Colors.white.withValues(alpha: 0.03),
         ),
@@ -423,14 +415,14 @@ class _GoogleSignInButtonState extends State<_GoogleSignInButton> {
         child: SizedBox(
           width: double.infinity,
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
-                height: 62,
+                height: 60,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -476,13 +468,8 @@ class _GoogleSignInButtonState extends State<_GoogleSignInButton> {
                             const SizedBox(width: 14),
                             Text(
                               'Continue with Google',
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                                color: kTextPrimary,
-                                letterSpacing: -0.2,
-                                fontFamily: 'Outfit',
-                              ),
+                              style: AppText.headline()
+                                  .copyWith(fontWeight: FontWeight.w700),
                             ),
                           ],
                         ),
@@ -588,27 +575,23 @@ class _ErrorBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md, vertical: 12),
       decoration: BoxDecoration(
         color: kError.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(color: kError.withValues(alpha: 0.30), width: 1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Icon(Icons.error_outline_rounded, color: kError, size: 18),
-          const SizedBox(width: 10),
+          const SizedBox(width: AppSpacing.sm + 2),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(
-                color: kError,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                fontFamily: 'Outfit',
-                height: 1.4,
-              ),
+              style: AppText.subheadline(color: AppColors.error)
+                  .copyWith(fontWeight: FontWeight.w500),
             ),
           ),
         ],

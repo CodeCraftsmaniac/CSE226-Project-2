@@ -320,7 +320,7 @@ class _CoursesScreenState extends State<CoursesScreen>
               // ── Body ──
               if (_isLoading)
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.pageGutter, 16, AppSpacing.pageGutter, AppSpacing.bottomSafePad),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate(_buildShimmer()),
                   ),
@@ -339,7 +339,7 @@ class _CoursesScreenState extends State<CoursesScreen>
                 )
               else
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.pageGutter, 8, AppSpacing.pageGutter, AppSpacing.bottomSafePad),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate(
                       _buildCourseList(),

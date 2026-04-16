@@ -210,7 +210,7 @@ class _UploadScreenState extends State<UploadScreen>
 
         // ── Content ──
         SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.pageGutter, 8, AppSpacing.pageGutter, AppSpacing.bottomSafePad),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
