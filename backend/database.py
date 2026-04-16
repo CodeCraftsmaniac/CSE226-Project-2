@@ -282,18 +282,21 @@ def delete_scan(scan_id: str, user_id: str) -> bool:
 # ─── Analytics Operations ───────────────────────────────────────────────────────
 
 def get_user_stats(user_id: str) -> Dict[str, Any]:
-    """Get statistics for a user from cse226_ocr_scans table."""
+    """Get statistics for a user from cse226_ocr_scans table.
+    Uses a single lightweight query selecting only aggregate-needed columns.
+    """
     supabase = get_supabase()
     if not supabase:
         return {'total_scans': 0, 'avg_cgpa': 0.0, 'total_courses_scanned': 0, 'total_credits_scanned': 0.0}
     
     try:
-        scans = supabase.table('cse226_ocr_scans')\
+        # Select only the columns needed for aggregation (no analysis_data)
+        result = supabase.table('cse226_ocr_scans')\
             .select('cgpa, total_credits, total_courses')\
             .eq('user_id', user_id)\
             .execute()
         
-        if not scans.data:
+        if not result.data:
             return {
                 'total_scans': 0,
                 'avg_cgpa': 0.0,
@@ -301,13 +304,14 @@ def get_user_stats(user_id: str) -> Dict[str, Any]:
                 'total_credits_scanned': 0.0
             }
         
-        cgpas = [float(s['cgpa']) for s in scans.data if s.get('cgpa')]
+        rows = result.data
+        cgpas = [float(r['cgpa']) for r in rows if r.get('cgpa')]
         
         return {
-            'total_scans': len(scans.data),
+            'total_scans': len(rows),
             'avg_cgpa': round(sum(cgpas) / len(cgpas), 2) if cgpas else 0.0,
-            'total_courses_scanned': sum(s.get('total_courses', 0) for s in scans.data),
-            'total_credits_scanned': sum(float(s.get('total_credits', 0)) for s in scans.data)
+            'total_courses_scanned': sum(r.get('total_courses', 0) or 0 for r in rows),
+            'total_credits_scanned': sum(float(r.get('total_credits', 0) or 0) for r in rows)
         }
     except Exception:
         return {'total_scans': 0, 'avg_cgpa': 0.0, 'total_courses_scanned': 0, 'total_credits_scanned': 0.0}
@@ -387,6 +391,10 @@ def consume_device_code(device_code: str) -> Optional[Dict[str, Any]]:
     making the consume operation atomic and preventing race conditions
     where two concurrent polls could both read the same code before
     either deletes it.
+
+    Handles both 'pending' and 'complete' status records so that the
+    CLI poll endpoint can retrieve the token after web verification
+    marks the code as complete.
     """
     supabase = get_supabase()
     if not supabase:
@@ -397,13 +405,16 @@ def consume_device_code(device_code: str) -> Optional[Dict[str, Any]]:
         return None
 
     try:
-        # delete() returns the deleted rows — atomic read-and-remove
-        result = supabase.table(DEVICE_CODES_TABLE).delete().eq(
-            'device_code', code,
-        ).eq('status', 'pending').execute()
+        # delete() returns the deleted rows — atomic read-and-remove.
+        # Try 'complete' first (the typical case when CLI polls after
+        # web verification), then fall back to 'pending'.
+        for status in ('complete', 'pending'):
+            result = supabase.table(DEVICE_CODES_TABLE).delete().eq(
+                'device_code', code,
+            ).eq('status', status).execute()
 
-        if result.data:
-            return result.data[0]
+            if result.data:
+                return result.data[0]
         return None
     except Exception as e:
         logger.debug(f"consume_device_code failed: {e}")

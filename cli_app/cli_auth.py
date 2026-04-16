@@ -185,6 +185,7 @@ class CLIAuth:
         self.refresh_token: Optional[str] = None
         self.user: Optional[Dict] = None
         self._supabase = None
+        self._guest_mode: bool = False
         self._load_token()
 
     def _get_auth_config(self) -> Optional[Dict[str, str]]:
@@ -326,7 +327,11 @@ class CLIAuth:
             return False
         
         try:
-            response = supabase.auth.refresh_session(self.refresh_token)
+            # Set the session with the existing refresh token so the SDK
+            # can use it internally. The SDK's refresh_session() reads
+            # from its internal session state, not from an argument.
+            supabase.auth.set_session(self.token, self.refresh_token)
+            response = supabase.auth.refresh_session()
             if response and response.session:
                 self.token = response.session.access_token
                 self.refresh_token = response.session.refresh_token
@@ -362,6 +367,15 @@ class CLIAuth:
     def is_authenticated(self) -> bool:
         """Check if user is authenticated."""
         return self.token is not None and self.user is not None
+
+    @property
+    def is_guest(self) -> bool:
+        """Check if user chose guest mode."""
+        return self._guest_mode
+
+    def set_guest_mode(self, enabled: bool = True):
+        """Enable or disable guest mode."""
+        self._guest_mode = enabled
     
     def _find_free_port(self) -> int:
         """Find a free port for the callback server."""
@@ -373,6 +387,8 @@ class CLIAuth:
         """Setup signal handlers for graceful interrupt."""
         global _interrupt_requested
         _interrupt_requested = False
+        self._original_sigint = signal.getsignal(signal.SIGINT)
+        self._original_sigterm = signal.getsignal(signal.SIGTERM) if hasattr(signal, 'SIGTERM') else None
         
         def signal_handler(signum, frame):
             global _interrupt_requested
@@ -383,6 +399,16 @@ class CLIAuth:
         signal.signal(signal.SIGINT, signal_handler)
         if hasattr(signal, 'SIGTERM'):
             signal.signal(signal.SIGTERM, signal_handler)
+
+    def _restore_signal_handlers(self):
+        """Restore original signal handlers after auth flow completes."""
+        try:
+            if hasattr(self, '_original_sigint') and self._original_sigint is not None:
+                signal.signal(signal.SIGINT, self._original_sigint)
+            if hasattr(self, '_original_sigterm') and self._original_sigterm is not None:
+                signal.signal(signal.SIGTERM, self._original_sigterm)
+        except Exception:
+            pass
     
     def login_with_google(self) -> bool:
         """
@@ -479,11 +505,15 @@ class CLIAuth:
                     
                     print("✅ Logged in successfully!")
                     print(f"   Welcome, {self.user.get('name') or self.user.get('email')}!")
+                    self._restore_signal_handlers()
+                    # Sync user to backend for history features
+                    self._sync_user_to_backend()
                     return True
                     
                 elif poll_data.get('status') == 'expired':
                     print("\r                                        ")
                     print("❌ Authentication code expired")
+                    self._restore_signal_handlers()
                     return False
                     
             except Exception:
@@ -492,6 +522,7 @@ class CLIAuth:
         
         print("\r                                        ")
         print("❌ Authentication timed out")
+        self._restore_signal_handlers()
         return False
     
     def _sync_user_to_backend(self):

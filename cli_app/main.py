@@ -240,7 +240,6 @@ def scan_transcript_cloud(file_path):
 def _log(tag, msg, style="cyan", tag_style="bold cyan"):
     """Print a terminal-style log line (same format as website STAGE_LOGS)."""
     console.print(f"  [{tag_style}]{tag:>8}[/{tag_style}]  [{style}]{msg}[/{style}]")
-    time.sleep(0.08)
 
 
 def scan_transcript(file_path):
@@ -1173,7 +1172,7 @@ def main():
         # ═══════════════════════════════════════════════════════════════════
         # AUTH GATE: Show login screen first if not authenticated
         # ═══════════════════════════════════════════════════════════════════
-        if AUTH_AVAILABLE and cli_auth and not cli_auth.is_authenticated:
+        if AUTH_AVAILABLE and cli_auth and not cli_auth.is_authenticated and not cli_auth.is_guest:
             # Show auth welcome screen
             console.print()
             console.print(Panel(
@@ -1216,6 +1215,7 @@ def main():
                     time.sleep(1)
             elif auth_choice == "2":
                 # Guest mode
+                cli_auth.set_guest_mode(True)
                 console.print("\n[yellow]Continuing as guest. Your scans won't be saved.[/yellow]")
                 time.sleep(1)
                 # Proceed to main scanning UI
@@ -1237,7 +1237,39 @@ def main():
         # ═══════════════════════════════════════════════════════════════════
         # MAIN MENU - Same options as website
         # ═══════════════════════════════════════════════════════════════════
-        if AUTH_AVAILABLE and cli_auth and cli_auth.is_authenticated:
+        if AUTH_AVAILABLE and cli_auth and cli_auth.is_guest and not cli_auth.is_authenticated:
+            # Guest menu - limited options
+            guest_menu = Table(show_header=False, box=box.ROUNDED, border_style="yellow", expand=True)
+            guest_menu.add_column("Option", style="bold", width=5)
+            guest_menu.add_column("Description")
+            guest_menu.add_row("[bold cyan]1[/bold cyan]", "[green]📄 New Scan[/green] — Upload and analyze transcript")
+            guest_menu.add_row("[bold cyan]2[/bold cyan]", "[blue]🔐 Sign In[/blue] — Log in to save history")
+            guest_menu.add_row("[bold cyan]0[/bold cyan]", "[red]Exit[/red] — Quit application")
+            console.print(guest_menu)
+            console.print()
+            
+            try:
+                menu_choice = Prompt.ask("[cyan]Select option[/cyan]", choices=["1", "2", "0"], default="1")
+            except (EOFError, KeyboardInterrupt):
+                console.print("\n[cyan]Goodbye![/cyan]")
+                break
+            
+            if menu_choice == "0":
+                console.print("\n[cyan]Goodbye![/cyan]")
+                break
+            elif menu_choice == "2":
+                cli_auth.set_guest_mode(False)
+                if cli_auth.login_with_google():
+                    console.print(f"\n[green]✓ Signed in as {cli_auth.user.get('name', cli_auth.user.get('email'))}[/green]")
+                    time.sleep(1.5)
+                else:
+                    cli_auth.set_guest_mode(True)
+                    console.print("\n[yellow]Login cancelled. Continuing as guest.[/yellow]")
+                    time.sleep(1)
+                continue
+            # If "1", fall through to file selection
+        
+        elif AUTH_AVAILABLE and cli_auth and cli_auth.is_authenticated:
             # Authenticated menu - matches website nav
             main_menu = Table(show_header=False, box=box.ROUNDED, border_style="cyan", expand=True)
             main_menu.add_column("Option", style="bold", width=5)
@@ -1268,6 +1300,7 @@ def main():
                 with console.status("[bold yellow]Signing out...[/bold yellow]", spinner="dots"):
                     time.sleep(1.5)
                 cli_auth.logout()
+                cli_auth.set_guest_mode(False)
                 console.print("\n[green]✓ You have been logged out successfully![/green]")
                 console.print("[dim]Your session has ended. See you next time![/dim]")
                 time.sleep(1.5)

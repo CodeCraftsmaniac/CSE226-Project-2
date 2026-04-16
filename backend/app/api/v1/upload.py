@@ -4,6 +4,7 @@ Upload & OCR Endpoints
 Handle transcript file uploads and OCR processing.
 FastAPI upload and OCR endpoints.
 """
+import asyncio
 import csv
 import os
 import time
@@ -479,8 +480,8 @@ async def upload_transcript(
             
             await broadcast_progress(job_id, "analyze", 60, "Running degree audit analysis...")
             
-            # Run analysis on parsed courses
-            result = run_analysis(courses, kb_path=str(KB_PATH))
+            # Run analysis on parsed courses (offload to thread to avoid blocking)
+            result = await asyncio.to_thread(run_analysis, courses, str(KB_PATH), None)
             
             # Add CSV info (similar to OCR info)
             result['ocr_info'] = {
@@ -508,13 +509,13 @@ async def upload_transcript(
             runtime_root = Path(tempfile.gettempdir()) / 'nsu-audit-api' / 'uploads'
             runtime_root.mkdir(parents=True, exist_ok=True)
             
-            # Secure filename
-            safe_filename = f"upload_{int(time.time())}_{file.filename or 'file'}"
-            safe_filename = "".join(c for c in safe_filename if c.isalnum() or c in '._-')
-            if not safe_filename.endswith(f'.{ext}'):
-                safe_filename = f"{safe_filename}.{ext}"
+            # Secure filename (use separate variable to avoid shadowing)
+            tmp_filename = f"upload_{int(time.time())}_{file.filename or 'file'}"
+            tmp_filename = "".join(c for c in tmp_filename if c.isalnum() or c in '._-')
+            if not tmp_filename.endswith(f'.{ext}'):
+                tmp_filename = f"{tmp_filename}.{ext}"
             
-            filepath = runtime_root / safe_filename
+            filepath = runtime_root / tmp_filename
             
             try:
                 # Write file
@@ -522,9 +523,9 @@ async def upload_transcript(
                 
                 await broadcast_progress(job_id, "ocr", 40, f"Running OCR with {ocr_engine} engine...")
                 
-                # OCR Processing with selected engine
+                # OCR Processing with selected engine (offload to thread)
                 ocr = OCRClass(engine=ocr_engine)
-                ocr_result = ocr.extract(str(filepath))
+                ocr_result = await asyncio.to_thread(ocr.extract, str(filepath))
                 
                 if not ocr_result.success:
                     logger.error(f"OCR failed: {ocr_result.error}")
@@ -576,11 +577,9 @@ async def upload_transcript(
                     for c in ocr_result.courses
                 ]
                 
-                # Run analysis with student_id for curriculum versioning
-                result = run_analysis(
-                    courses, 
-                    kb_path=str(KB_PATH),
-                    student_id=ocr_result.student_id
+                # Run analysis with student_id for curriculum versioning (offload to thread)
+                result = await asyncio.to_thread(
+                    run_analysis, courses, str(KB_PATH), ocr_result.student_id
                 )
                 
                 # Add OCR info with department and validation data
@@ -1223,7 +1222,7 @@ async def batch_upload_transcripts(
                         failed += 1
                         continue
 
-                    analysis = run_analysis(course_rows, kb_path=str(KB_PATH))
+                    analysis = await asyncio.to_thread(run_analysis, course_rows, str(KB_PATH), None)
                     analysis['ocr_info'] = {
                         'engine': 'CSV Parser (Direct Import)',
                         'confidence': 100.0,
@@ -1281,9 +1280,9 @@ async def batch_upload_transcripts(
                 tmp_path = tmp.name
             
             try:
-                # Run OCR with engine selection
+                # Run OCR with engine selection (offload to thread)
                 ocr = OCRClass(engine=ocr_engine) if ocr_engine else OCRClass()
-                ocr_result = ocr.extract(tmp_path)
+                ocr_result = await asyncio.to_thread(ocr.extract, tmp_path)
                 
                 if not ocr_result.success:
                     results.append(BatchUploadResultItem(
@@ -1306,10 +1305,11 @@ async def batch_upload_transcripts(
                         }
                         for course in getattr(ocr_result, 'courses', [])
                     ]
-                    analysis = run_analysis(
+                    analysis = await asyncio.to_thread(
+                        run_analysis,
                         course_rows,
-                        kb_path=str(KB_PATH),
-                        student_id=getattr(ocr_result, 'student_id', None),
+                        str(KB_PATH),
+                        getattr(ocr_result, 'student_id', None),
                     )
                     
                     # Add OCR info

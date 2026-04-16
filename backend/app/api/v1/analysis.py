@@ -56,10 +56,10 @@ def get_dependencies():
 def get_db_functions():
     """Lazy load database functions."""
     try:
-        from database import get_user_scans
-        return get_user_scans
+        from database import get_user_scans, get_scan_by_id
+        return get_user_scans, get_scan_by_id
     except Exception:
-        return None
+        return None, None
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -91,7 +91,7 @@ async def get_latest_analysis(
     import json
     
     get_current_user, get_db_user_id, DB_MODULE_AVAILABLE, require_db = get_dependencies()
-    get_user_scans = get_db_functions()
+    get_user_scans, get_scan_by_id = get_db_functions()
     
     # Require DB
     require_db()
@@ -111,15 +111,20 @@ async def get_latest_analysis(
         logger.warning(f"Could not get db_user_id for {user.get('email')}")
         raise HTTPException(status_code=404, detail="No analysis found")
     
-    # Get latest scan
+    # Get latest scan ID (lightweight query without analysis_data)
     scans = get_user_scans(db_user_id, limit=1)
     
     if not scans or len(scans) == 0:
         logger.info(f"No scans found for user {db_user_id}")
         raise HTTPException(status_code=404, detail="No analysis found")
     
-    scan = scans[0]
-    logger.info(f"Found latest scan {scan['id']} for user {db_user_id}")
+    scan_id = scans[0]['id']
+    logger.info(f"Found latest scan {scan_id} for user {db_user_id}")
+    
+    # Fetch full scan with analysis_data
+    scan = get_scan_by_id(scan_id) if get_scan_by_id else scans[0]
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found")
     
     # Parse analysis_data if it's a JSON string
     analysis_data = scan.get('analysis_data', {})
@@ -149,9 +154,9 @@ async def get_latest_analysis(
         'remaining_credits': max(0, required_credits - float(scan.get('total_credits', 0))),
         'graduation_progress': min(1.0, float(scan.get('total_credits', 0)) / required_credits) if required_credits > 0 else 0,
         'courses': analysis_data.get('courses', []),
-        'level_1': analysis_data.get('level_1', {}),
-        'level_2': analysis_data.get('level_2', {}),
-        'level_3': analysis_data.get('level_3', {}),
+        'level1': analysis_data.get('level1', {}),
+        'level2': analysis_data.get('level2', {}),
+        'level3': analysis_data.get('level3', {}),
         'curriculum': curriculum,
         'summary': analysis_data.get('summary', ''),
         'created_at': scan['created_at'],

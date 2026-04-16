@@ -235,15 +235,10 @@ class ConnectionManager:
         for jid in stale:
             self.progress_data.pop(jid, None)
             self.progress_timestamps.pop(jid, None)
-            # Close and remove stale WebSocket connections for this job
+            # Remove stale WebSocket connections for this job.
+            # We simply discard them — the client will have timed out
+            # naturally.  Trying to close from a sync context is unsafe.
             if jid in self.active_connections:
-                for conn in self.active_connections[jid]:
-                    try:
-                        # Best-effort close — the client may have already disconnected
-                        import asyncio
-                        asyncio.get_event_loop().create_task(conn.close())
-                    except Exception:
-                        pass
                 del self.active_connections[jid]
     
     def clear_job(self, job_id: str):
