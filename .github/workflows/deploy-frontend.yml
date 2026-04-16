@@ -32,15 +32,5 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Link project
-        run: |
-          cd web_app
-          vercel link --yes \
-            --project cse226-project-frontend \
-            --scope adamjeeans-projects \
-            --token=${{ secrets.VERCEL_TOKEN }}
-
       - name: Deploy to production
-        run: |
-          cd web_app
-          vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }} --cwd=.
