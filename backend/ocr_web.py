@@ -769,6 +769,166 @@ class WebOCR:
 
         lines = text.replace('\r', '\n').split('\n')
         
+        # ===== WATERMARK NOISE FILTER =====
+        # NSU transcripts have a large diagonal watermark "NORTH SOUTH UNIVERSITY"
+        # that OCR reads as hundreds of short fragments. These cause:
+        # - Phantom course codes, grade misassignment, wrong credits
+        # Strategy:
+        # 1. Strip trailing watermark fragments from meaningful lines
+        # 2. Remove pure noise lines
+        # 3. Remove grading legend table lines (A, B+, C, etc. as standalone entries
+        #    in the legend, not course grades)
+        
+        # Step 1: Strip trailing watermark fragments from lines
+        # Patterns like "VERST", "IVERSI", "RTH SOUTH" appended to meaningful text
+        _WM_TRAIL = re.compile(
+            r'\s+'                           # leading whitespace
+            r'(?:'
+            r'[A-Z]{0,3}TH\s*[A-Z]*'        # "RTH SO", "2TH SOU", "TH UNI"
+            r'|TY\s*N[OAKR]*'               # "TY NOR", "TY NOK"
+            r'|[A-Z]*SOUTH\s*[A-Z]*'        # "SOUTH UNI"
+            r'|[A-Z]*NORTH\s*[A-Z]*'        # "NORTH S"
+            r'|[A-Z]*UNIVER[SITY]*'         # "UNIVERS", "UNIVERSE"
+            r'|[A-Z]*VERS[ITY]*'            # "VERSI", "VERSITY"
+            r'|[A-Z]*OUTH\s*[A-Z]*'         # "OUTH UNT"
+            r'|[A-Z]{0,3}ERS[ITY]*'         # "ERSITY", "ERSI"
+            r'|[A-Z]{0,2}IVER[SITY]*'       # "IVERSI"
+            r'|NIVER[SITY]*'                # "NIVERSI"
+            r'|[A-Z]*SO\s*[A-Z]*'           # "RTH SO"
+            r'|[A-Z]*SIT[Y]*'               # "SITY"
+            r'|SOUTH\s+[A-Z]*'              # "SOUTH LIVERSI"
+            r'|NORTH\s+S'                   # "NORTH S"
+            r'|UNIVE[RSA]*'                 # "UNIVE", "UNIVERS"
+            r'|JUNIT'                       # "JUNIT"
+            r'|TENOR'                       # "TENOR"
+            r'|THUN'                        # "THUN"
+            r'|THIN'                        # "THIN"
+            r'|SOL\b'                       # "SOL"
+            r'|NSU\b'                       # "NSU" (watermark, not course)
+            r'|SEEK'                        # "SEEK" from "SEEK KNOWLEDGE"
+            r')'
+            r'\s*$'                          # must be at end of line
+        )
+        
+        # Strip watermark fragments PREFIXED to data on the same line
+        # OCR merges watermark text with actual data: "TH3.0 F 0.0 0.0", "T3.0 A"
+        # These prefixes are short uppercase fragments from "NORTH SOUTH UNIVERSITY"
+        _WM_PREFIX = re.compile(
+            r'^(?:'
+            r'TH'                            # "TH3.0 F 0.0 0.0"
+            r'|TY'                           # "TY3.0"
+            r'|[A-Z]{1,2}TH'                 # "JTH3.0"
+            r')'
+            r'(\d+\.\d)'                      # Must be followed by a decimal number (credit/grade data)
+        )
+        # Special case: single "T" prefix before credit/grade data
+        # Only match when "T" is followed by a credit pattern AND the line
+        # doesn't look like a course code (e.g., "THE" would be a title word)
+        _WM_PREFIX_T = re.compile(
+            r'^T(\d+\.\d\s+[ABCDFWIP])'      # "T3.0 A", "T3.0 B+" etc.
+        )
+        # "T3.0" standalone (just a credit value with watermark prefix)
+        _WM_PREFIX_T2 = re.compile(
+            r'^T(\d+\.\d)\s*$'               # "T3.0" at end of line
+        )
+        
+        # Strip watermark fragments EMBEDDED in data lines
+        # e.g., "Semester Credit: 9.00NIVERS UTGPA: 3.80" -> "Semester Credit: 9.00 TGPA: 3.80"
+        _WM_MID = re.compile(
+            r'(?:'
+            r'NIVERS\s*U?'                   # "9.00NIVERS UTGPA"
+            r'|[A-Z]{1,3}TH\s+UND'           # "TH UND"
+            r'|TH\s+UN[I]*'                  # "TH UNI"
+            r'|\s+ITH\s+UN'                  # " ITH UN"
+            r'|\s+ERST'                      # " ERST"
+            r'|\s+ENCAS'                     # " ENCAS"
+            r'|\s+TEES'                      # " TEES"
+            r'|\s+TVERSI'                    # " TVERSI"
+            r')'
+        )
+        
+        cleaned_lines = []
+        for line in lines:
+            cleaned = _WM_TRAIL.sub('', line).strip()
+            # Strip watermark prefix before credit/grade data
+            cleaned = _WM_PREFIX.sub(r'\1', cleaned)
+            cleaned = _WM_PREFIX_T.sub(r'\1', cleaned)
+            cleaned = _WM_PREFIX_T2.sub(r'\1', cleaned)
+            # Strip watermark fragments embedded in data lines
+            cleaned = _WM_MID.sub(' ', cleaned).strip()
+            cleaned_lines.append(cleaned)
+        
+        # Step 2: Remove pure noise lines (no meaningful content)
+        # A line is noise if it's short, all uppercase, and doesn't contain
+        # course codes, grades, credits, semester names, or keywords
+        _NOISE_LINE = re.compile(
+            r'^(?:'
+            r'[A-Z]{1,6}$'                   # "VERSITY", "ORTH"
+            r'|[A-Z]{1,4}\s+[A-Z]{1,4}$'    # "ORTH SC", "RTH SO"
+            r'|[A-Z]{1,4}\s+[A-Z]{1,4}\s+[A-Z]{1,4}$'
+            r'|[A-Z]*SOUTH\s*[A-Z]*$'        # "SOUTH UNI"
+            r'|[A-Z]*NORTH\s*[A-Z]*$'        # "NORTH SOU"
+            r'|[A-Z]*UNIVER[SITY]*$'         # "UNIVERS"
+            r'|[A-Z]*VERS[ITY]*$'            # "VERSI"
+            r'|TY\s*N[OAKR]*$'               # "TY NOR"
+            r'|[A-Z]*OUTH\s*[A-Z]*$'         # "OUTH UNT"
+            r'|[A-Z]{0,3}ERS[ITY]*$'         # "ERSITY"
+            r'|[A-Z]{0,2}IVER[SITY]*$'       # "IVERSI"
+            r'|NIVER[SITY]*$'                # "NIVERSI"
+            r'|[A-Z]*SO\s*[A-Z]*$'           # "RTH SO"
+            r'|[A-Z]*SIT[Y]*$'               # "SITY"
+            r'|[A-Z]{1,3}TH[A-Z\s]*$'        # "2TH SO", "RTH SOU"
+            r'|UNIVE[RSA]*$'                 # "UNIVE"
+            r'|[A-Z]*LIVER[SITY]*$'          # "LIVERSI"
+            r'|\d[A-Z]{1,5}$'                # "2TH", "0SA" (digit+watermark fragment)
+            r'|\d{6,}$'                      # "0112106", "018030" (long digit strings)
+            r'|SEEK\s+KNOWLEDGE$'            # "SEEK KNOWLEDGE" watermark
+            r'|UNIF[LWE]*$'                  # "UNIFE", "UNIFL" watermark fragment
+            r'|LUND$'                        # "LUND" watermark fragment
+            r'|"OUTH\s+UNI[A-Z]*$'           # "OUTH UNIFL" watermark fragment
+            r')$'
+        )
+        
+        # Meaningful content patterns - if a line has ANY of these, keep it
+        _MEANINGFUL = re.compile(
+            r'(?:'
+            r'[A-Z]{2,4}\s?\d{3}[A-Z]?'     # Course code
+            r'|[ABCDF][+-]?'                 # Grade letter
+            r'|\d+\.\d+'                     # Decimal number
+            r'|(?:Spring|Summer|Fall)\s+\d{4}'  # Semester
+            r'|(?:Student|Course|Credit|Grade|TGPA|CGPA|Semester|Total|Cumulative|Degree|Major|Name|Date|Official|Summary|School|Bachelor|Department|Title|Working|Introduction|Financial|Management|Accounting|Marketing|Economics|Business|Calculus|Physics|Engineering|Computer|Statistics|Composition|Advanced|Intermediate|Corporate|Investment|Bank|Legal|Environment|Production|Entrepreneurship|Sociology|Internship|Strategic|Taxation|Communication|Ethics|Biology|Chinese|Numerical|Electrical|Semiconductor|Signals|Systems|Digital|Verilog|Mechanical|Switchgear|Protection|Project|Drawing|Circuits|Transmission|Distribution|Architecture|Organization|Probability|Optimization|Methodology|Public|Administration|Governance|Reliability|Operation|General|Analytic|Geometry)'
+            r')',
+            re.IGNORECASE
+        )
+        # Separate check for actual lowercase content (course titles have lowercase words)
+        # This must NOT use IGNORECASE — we need real lowercase letters to distinguish
+        # course titles from watermark fragments like "VERSE", "EKST", "ERST"
+        _HAS_LOWERCASE = re.compile(r'[a-z]{3,}')
+        
+        filtered_lines = []
+        for line in cleaned_lines:
+            if not line:
+                filtered_lines.append(line)
+                continue
+            # Keep if it has meaningful content (course codes, grades, numbers, keywords)
+            if _MEANINGFUL.search(line):
+                filtered_lines.append(line)
+                continue
+            # Keep if it has real lowercase words (course titles like "Introduction to...")
+            if _HAS_LOWERCASE.search(line):
+                filtered_lines.append(line)
+                continue
+            # Drop pure noise lines
+            if _NOISE_LINE.match(line):
+                continue
+            # Drop very short all-caps lines with no digits or lowercase
+            if len(line) <= 12 and line.isupper() and not any(c.isdigit() for c in line):
+                continue
+            filtered_lines.append(line)
+        
+        _logger.info(f"Watermark filter: {len(lines)} -> {len(filtered_lines)} lines (removed {len(lines) - len(filtered_lines)} noise)")
+        lines = filtered_lines
+        
         # ===== METADATA EXTRACTION =====
         for i, line in enumerate(lines):
             line_clean = line.strip()
@@ -1039,10 +1199,15 @@ class WebOCR:
                             cr2 = v
                             break
                 
-                # Also check if credits are on the same line as grades (pattern: "A A 2.0 2.0")
+                # Only use double-grade line credits if per-course lookup found nothing
+                # (default 3.0). The per-course lookup is more reliable because it
+                # finds the credit directly after the course code, while the merged
+                # "2.0 2.0" on the double-grade line is often an OCR misread.
                 if m.group(3) and m.group(4):
-                    cr1 = float(m.group(3))
-                    cr2 = float(m.group(4))
+                    if cr1 == 3.0:  # Still default — no per-course credit found
+                        cr1 = float(m.group(3))
+                    if cr2 == 3.0:  # Still default — no per-course credit found
+                        cr2 = float(m.group(4))
                 
                 sem1 = get_semester_for_pass0(line1)
                 sem2 = get_semester_for_pass0(line2)
@@ -1090,24 +1255,36 @@ class WebOCR:
             if re.search(r'TGPA|CGPA|Semester Credit', line_clean):
                 block_ends.append(i)
         
-        _logger.debug(f"Found {len(semester_headers)} semester headers")
+        _logger.debug(f"Found {len(semester_headers)} semester headers: {[(l, s) for l, s in semester_headers]}")
+        _logger.debug(f"Found {len(block_ends)} block-end lines (TGPA/CGPA): {block_ends}")
         
         # Sort semester headers by line number
         semester_headers.sort(key=lambda x: x[0])
+        block_ends.sort()
         
-        # Build semester ranges: each semester header is valid until the next one
-        # or until a TGPA/CGPA line, whichever comes first
+        # Build semester ranges: each semester header is valid until the
+        # first TGPA/CGPA line after it, or until the next semester header,
+        # whichever comes first. This prevents courses from one semester
+        # bleeding into the next when noise lines shift positions.
         semester_ranges = []  # [(start, end, semester), ...]
         
         for idx, (sem_line, semester) in enumerate(semester_headers):
             start = sem_line
             
-            # End is either next semester header, or end of file
-            if idx + 1 < len(semester_headers):
-                end = semester_headers[idx + 1][0] - 1
-            else:
-                end = len(lines)
+            # Find the earliest boundary after this semester header:
+            # 1. Next semester header
+            # 2. First TGPA/CGPA line after this header
+            # Use whichever comes first
+            next_header = semester_headers[idx + 1][0] if idx + 1 < len(semester_headers) else len(lines)
             
+            # Find first block_end after this semester header
+            next_block_end = len(lines)
+            for be in block_ends:
+                if be > sem_line:
+                    next_block_end = be
+                    break
+            
+            end = min(next_header - 1, next_block_end)
             semester_ranges.append((start, end, semester))
         
         # For each course, find which semester range it falls into
@@ -1545,6 +1722,51 @@ class WebOCR:
             _logger.info(f"Detected department: {department_name} ({department_code}) from ID {student_id}")
         elif student_id:
             _logger.warning(f"Could not detect valid department from ID {student_id}: {dept_info.get('error', 'Unknown error')}")
+        
+        # ===== CREDIT SANITY CHECK =====
+        # OCR commonly misreads "3.0" as "4.0" or "2.0" in the credit column.
+        # Use the course catalog (COURSE_LOOKUP) when available to override
+        # OCR-misread credits with known correct values.
+        # Only override when the OCR credit is clearly wrong:
+        # - 2.0 for a course that the catalog says is 3+ credits
+        # - 4.0+ for a non-thesis course
+        # Don't override 3.0 credits — that's the most common value and likely correct.
+        for c in courses:
+            if c.credits in (1.0, 1.5, 3.0):
+                continue  # Common credit values — keep as-is
+            
+            # Check course catalog for known credit value
+            catalog_credits = None
+            if COURSE_CATALOG_AVAILABLE:
+                info = get_course_info(c.course_code)
+                if info and 'credits' in info:
+                    catalog_credits = float(info['credits'])
+            
+            if c.credits == 2.0 and catalog_credits is not None and catalog_credits >= 3.0:
+                # OCR read 2.0 but catalog says 3+ — likely OCR misread of 3.0
+                # Default to 3.0 rather than exact catalog value, since different
+                # programs may assign different credits (e.g., CHE101=4 in catalog
+                # but 3.0 for engineering students)
+                _logger.info(f"Credit sanity: {c.course_code} 2.0->3.0 (catalog confirms 3+ credits)")
+                c.credits = 3.0
+                continue
+            
+            # Heuristic for courses not in catalog or with unusual credits
+            is_thesis = False
+            for i, line in enumerate(lines):
+                if c.course_code in line:
+                    for j in range(i, min(i + 4, len(lines))):
+                        title_line = lines[j].strip().lower()
+                        if 'thesis' in title_line or 'project' in title_line or 'internship' in title_line:
+                            is_thesis = True
+                    break
+            
+            if c.credits == 4.0 and not is_thesis:
+                _logger.info(f"Credit sanity: {c.course_code} 4.0->3.0 (non-thesis course)")
+                c.credits = 3.0
+            elif c.credits > 4.0 and not is_thesis:
+                _logger.info(f"Credit sanity: {c.course_code} {c.credits}->3.0 (unusual credits)")
+                c.credits = 3.0
         
         # ===== COURSE VALIDATION =====
         unknown_courses = validate_courses_against_catalog(courses)
