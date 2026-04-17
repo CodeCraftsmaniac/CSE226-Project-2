@@ -343,7 +343,9 @@ def save_device_code(
     }
 
     try:
-        result = supabase.table(DEVICE_CODES_TABLE).upsert(record).execute()
+        result = supabase.table(DEVICE_CODES_TABLE).upsert(
+            record, on_conflict='device_code',
+        ).execute()
         return result.data[0] if result.data else record
     except Exception as e:
         logger.error(f"save_device_code error for {record['device_code']}: {e}")
@@ -357,11 +359,15 @@ def get_device_code(device_code: str) -> Optional[Dict[str, Any]]:
         return None
 
     try:
-        result = supabase.table(DEVICE_CODES_TABLE).select('*').eq(
-            'device_code',
-            (device_code or '').strip().upper(),
-        ).limit(1).execute()
-        return result.data[0] if result.data else None
+        code = (device_code or '').strip().upper()
+        # Prefer 'complete' records over 'pending' (handles legacy duplicates)
+        for status in ('complete', 'pending'):
+            result = supabase.table(DEVICE_CODES_TABLE).select('*').eq(
+                'device_code', code,
+            ).eq('status', status).limit(1).execute()
+            if result.data:
+                return result.data[0]
+        return None
     except Exception as e:
         logger.debug(f"get_device_code failed: {e}")
         return None
@@ -414,6 +420,13 @@ def consume_device_code(device_code: str) -> Optional[Dict[str, Any]]:
             ).eq('status', status).execute()
 
             if result.data:
+                # Clean up any remaining duplicate rows for this code
+                try:
+                    supabase.table(DEVICE_CODES_TABLE).delete().eq(
+                        'device_code', code,
+                    ).execute()
+                except Exception:
+                    pass
                 return result.data[0]
         return None
     except Exception as e:

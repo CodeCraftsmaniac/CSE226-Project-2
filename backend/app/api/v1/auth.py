@@ -567,7 +567,7 @@ async def create_device_code_endpoint(request: Request):
     Returns a code that user will enter on web to authenticate.
     Similar to: gh auth login, supabase login
     """
-    if _count_pending_device_code_records() >= _MAX_PENDING_DEVICE_CODES:
+    if await asyncio.to_thread(_count_pending_device_code_records) >= _MAX_PENDING_DEVICE_CODES:
         raise HTTPException(status_code=503, detail="Device code queue is full. Please try again shortly.")
 
     device_code = generate_device_code()
@@ -575,7 +575,7 @@ async def create_device_code_endpoint(request: Request):
     created_at = datetime.now(timezone.utc)
     expires_at = created_at + timedelta(seconds=_DEVICE_CODE_TTL_SECONDS)
 
-    _store_device_code_record(
+    await asyncio.to_thread(_store_device_code_record,
         device_code=device_code,
         status='pending',
         expires_at=expires_at,
@@ -607,18 +607,18 @@ async def poll_device_code(request: Request, poll_data: DevicePollRequest):
     if not device_code:
         raise HTTPException(status_code=400, detail="Invalid device code")
 
-    code_data = _load_device_code_record(device_code)
+    code_data = await asyncio.to_thread(_load_device_code_record, device_code)
     if not code_data:
         raise HTTPException(status_code=400, detail="Invalid device code")
 
     # Check expiration
     if not code_data.get('expires_at') or time.time() > code_data['expires_at']:
-        _consume_device_code_record(device_code)
+        await asyncio.to_thread(_consume_device_code_record, device_code)
         raise HTTPException(status_code=410, detail="Device code expired")
 
     # Check if authenticated
     if code_data['status'] == 'complete':
-        completed = _consume_device_code_record(device_code) or code_data
+        completed = await asyncio.to_thread(_consume_device_code_record, device_code) or code_data
         token = completed.get('token')
         user = completed.get('user')
         if not token or not user:
@@ -653,18 +653,18 @@ async def verify_device_code(request: Request, verify_data: DeviceVerifyRequest)
     if not device_code:
         raise HTTPException(status_code=400, detail="Invalid or expired device code")
 
-    code_data = _load_device_code_record(device_code)
+    code_data = await asyncio.to_thread(_load_device_code_record, device_code)
     if not code_data:
         raise HTTPException(status_code=400, detail="Invalid or expired device code")
 
     if not code_data.get('expires_at') or time.time() > code_data['expires_at']:
-        _consume_device_code_record(device_code)
+        await asyncio.to_thread(_consume_device_code_record, device_code)
         raise HTTPException(status_code=410, detail="Device code expired")
 
     if not verify_data.access_token or not verify_data.user:
         raise HTTPException(status_code=400, detail="Missing token or user data")
 
-    verified_user = verify_supabase_access_token(verify_data.access_token)
+    verified_user = await asyncio.to_thread(verify_supabase_access_token, verify_data.access_token)
     if not verified_user:
         raise HTTPException(status_code=401, detail="Invalid access token")
 
@@ -693,13 +693,13 @@ async def verify_device_code(request: Request, verify_data: DeviceVerifyRequest)
 
     db_user_id = None
     if DB_MODULE_AVAILABLE and create_user:
-        db_user = create_user(email=email, name=name, provider='google')
+        db_user = await asyncio.to_thread(create_user, email=email, name=name, provider='google')
         if db_user:
             db_user_id = db_user.get('id')
 
     # Mark code as complete. We return the verified Supabase access token so
     # mobile/CLI use the same auth token type as the web app.
-    _store_device_code_record(
+    await asyncio.to_thread(_store_device_code_record,
         device_code=device_code,
         status='complete',
         expires_at=datetime.fromtimestamp(code_data['expires_at'], tz=timezone.utc),
