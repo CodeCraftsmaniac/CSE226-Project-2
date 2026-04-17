@@ -316,10 +316,12 @@ def validate_courses_against_catalog(courses: list) -> list:
     return unknown_courses
 
 
-OCR_CORRECTIONS = {
-    # Number/letter confusion
-    '8+': 'B+', '8-': 'B-', '8': 'B',
-    '0': 'D', 'O': 'D', '6': 'B',
+# Grade corrections — ONLY applied during grade validation, never globally.
+# Dangerous broad corrections ('S':'B', 'E':'F', '0':'D', 'O':'D') removed
+# because they cause false grade assignments from non-grade text.
+GRADE_CORRECTIONS = {
+    # Number/letter confusion in grade context
+    '8+': 'B+', '8-': 'B-', '8': 'B', '6': 'B',
     # Plus/minus symbol issues
     'A+': 'A', 'A1': 'A-', 'Al': 'A-', 'A|': 'A-', 'At': 'A-', 'A~': 'A-', 'A.': 'A',
     'Bt': 'B+', 'B1': 'B-', 'B~': 'B-', 'B.': 'B',
@@ -328,11 +330,30 @@ OCR_CORRECTIONS = {
     # Transfer/special grades
     'T8': 'TR', 'TR.': 'TR', 'T R': 'TR', 'ТR': 'TR',  # Cyrillic T
     'P+': 'P', 'P.': 'P',
-    # Common OCR errors
-    'E': 'F', 'S': 'B',  # S often misread for B
-    # Course code corrections
+}
+
+# Course code corrections — applied only to detected course codes
+COURSE_CODE_CORRECTIONS = {
     'CSEIS': 'CSE15', 'MAT1I6': 'MAT116', 'MAT12O': 'MAT120',
     'PHY1O7': 'PHY107', 'ENG1O2': 'ENG102',
+    'MIS105': 'MIS205', 'MIS1O5': 'MIS205',  # Common 2→1/O misread
+    'MIS2O5': 'MIS205',
+    'CSEII5': 'CSE115', 'CSEII5L': 'CSE115L',
+    'CSE2I5': 'CSE215', 'CSE2I5L': 'CSE215L',
+    'CSE22S': 'CSE225', 'CSE22SL': 'CSE225L',
+    'CSE23I': 'CSE231', 'CSE23IL': 'CSE231L',
+    'CSE3I1': 'CSE311', 'CSE4I1': 'CSE411',
+    'EEEIII': 'EEE111', 'EEE14I': 'EEE141',
+    'MATI20': 'MAT120', 'MATI25': 'MAT125', 'MATI30': 'MAT130',
+    'MATI64': 'MAT164', 'MAT25O': 'MAT250',
+    'ECOI01': 'ECO101', 'POLI01': 'POL101', 'SOCI01': 'SOC101',
+    'BENI05': 'BEN205', 'BEN2O5': 'BEN205',
+    'CSEZ26': 'CSE226',
+    'ENGI02': 'ENG102', 'ENGI03': 'ENG103',
+    'HISI03': 'HIS103', 'HISI02': 'HIS102',
+    'PHII04': 'PHI104',
+    'PHYI07': 'PHY107', 'PHYI08': 'PHY108',
+    'CHEI01': 'CHE101', 'CHNI01': 'CHN101',
 }
 
 
@@ -489,7 +510,7 @@ class WebOCR:
             self._report("page", 30 + (i / len(doc)) * 50, f"OCR page {i+1}/{len(doc)}...")
 
             # Render page to image at higher resolution for better OCR
-            pix = page.get_pixmap(matrix=fitz.Matrix(3.0, 3.0))
+            pix = page.get_pixmap(matrix=fitz.Matrix(4.0, 4.0))
             img_data = pix.tobytes("png")
 
             # Compress if too large for OCR API (free tier limit ~1MB)
@@ -713,13 +734,13 @@ class WebOCR:
             if img.mode in ('RGBA', 'P'):
                 img = img.convert('RGB')
 
-            max_dim = 2000
+            max_dim = 4000
             if img.width > max_dim or img.height > max_dim:
                 ratio = min(max_dim / img.width, max_dim / img.height)
                 img = img.resize((int(img.width * ratio), int(img.height * ratio)), Image.LANCZOS)
 
             output = io.BytesIO()
-            img.save(output, format='JPEG', quality=80, optimize=True)
+            img.save(output, format='JPEG', quality=90, optimize=True)
             return output.getvalue()
         except ImportError as e:
             _logger.warning(f"PIL not available for image compression: {e}")
@@ -847,12 +868,13 @@ class WebOCR:
                                 break
             
             # CGPA - multiple patterns for different transcript formats
+            # Take the LAST valid CGPA found (most recent cumulative value)
             if any(x in line_clean.upper() for x in ['CUMULATIVE', 'CGPA', 'CUM. GPA', 'CUM GPA']):
                 # Try multiple patterns
                 cgpa_patterns = [
                     r':\s*(\d+\.\d{1,2})',           # ": 3.45"
                     r'(\d+\.\d{1,2})\s*$',           # "3.45" at end
-                    r'CGPA\s*(\d+\.\d{1,2})',        # "CGPA 3.45"
+                    r'CGPA\s*[:=]?\s*(\d+\.\d{1,2})',  # "CGPA 3.45" or "CGPA: 3.45"
                     r'(\d+\.\d{1,2})\s*/\s*4\.0',    # "3.45/4.0"
                 ]
                 for pattern in cgpa_patterns:
@@ -862,18 +884,58 @@ class WebOCR:
                         if 0.0 <= potential_cgpa <= 4.0:
                             cgpa = potential_cgpa
                             break
+                
+                # If value not on same line, check next line (OCR splits across lines)
+                if cgpa == 0.0:
+                    for j in range(i + 1, min(i + 3, len(lines))):
+                        next_line = lines[j].strip()
+                        for pattern in cgpa_patterns:
+                            cgpa_match = re.search(pattern, next_line)
+                            if cgpa_match:
+                                potential_cgpa = float(cgpa_match.group(1))
+                                if 0.0 <= potential_cgpa <= 4.0:
+                                    cgpa = potential_cgpa
+                                    break
+                        if cgpa > 0.0:
+                            break
             
             # Total Credits - multiple patterns
+            # NSU transcripts use "Total Credits Counted" (for CGPA calc) and "Total Credits Passed"
+            # We want "Counted" as it matches the CGPA denominator.
+            # OCR often splits label and value across many lines, so check current + up to 8 lines ahead.
             if any(x in line_clean.upper() for x in ['TOTAL CREDITS', 'CREDITS EARNED', 'CREDIT HOURS']):
+                # Skip "Total Credits Passed" — we want "Counted" for CGPA calculation
+                is_passed = 'PASSED' in line_clean.upper()
+                is_transfer = 'TRANSFER' in line_clean.upper() or 'WAIVER' in line_clean.upper()
                 cr_patterns = [
-                    r':\s*(\d+(?:\.\d)?)',           # ": 130"
-                    r'(\d{2,3}(?:\.\d)?)\s*$',       # "130" at end
+                    r':\s*(\d+(?:\.\d+)?)',           # ": 130"
+                    r'(\d{2,3}(?:\.\d+)?)\s*$',       # "130" at end
                 ]
+                found = False
                 for pattern in cr_patterns:
                     cr_match = re.search(pattern, line_clean)
                     if cr_match:
-                        total_credits_from_pdf = float(cr_match.group(1))
+                        val = float(cr_match.group(1))
+                        if not is_passed and not is_transfer and 0 < val <= 250:
+                            total_credits_from_pdf = val
+                            found = True
                         break
+                
+                # If value not on same line, check next lines (OCR splits across lines)
+                # Labels and values can be many lines apart in OCR output
+                if not found and not is_passed and not is_transfer:
+                    for j in range(i + 1, min(i + 10, len(lines))):
+                        next_line = lines[j].strip()
+                        for pattern in cr_patterns:
+                            cr_match = re.search(pattern, next_line)
+                            if cr_match:
+                                val = float(cr_match.group(1))
+                                if 0 < val <= 250:
+                                    total_credits_from_pdf = val
+                                    found = True
+                                break
+                        if found:
+                            break
 
         # ===== PASS 0: FULL-LINE MATCHES (highest confidence) =====
         # FULL_LINE_PATTERN captures "CSE115 3 A-" on a single line — most reliable
@@ -897,10 +959,15 @@ class WebOCR:
                 prefix = match.group(1).upper()
                 number = match.group(2).upper()
                 code = prefix + number
+                # Apply course code corrections (I/1/O/0 confusion)
+                code = COURSE_CODE_CORRECTIONS.get(code, code)
                 if prefix not in ALL_COURSE_PREFIXES:
                     continue
                 credits = float(match.group(3))
                 grade = match.group(4).upper()
+                # Apply grade corrections before validation
+                if grade not in VALID_GRADES:
+                    grade = GRADE_CORRECTIONS.get(grade, grade)
                 if grade not in VALID_GRADES:
                     continue
                 semester = get_semester_for_pass0(i)
@@ -1004,6 +1071,8 @@ class WebOCR:
                     continue
                 
                 code = prefix + number
+                # Apply course code corrections (I/1/O/0 confusion)
+                code = COURSE_CODE_CORRECTIONS.get(code, code)
                 
                 # Skip if we already found this code in this line
                 line_key = (code, i)
@@ -1117,6 +1186,9 @@ class WebOCR:
                             break
             
             if grade_found:
+                # Apply grade corrections (e.g., '8+' -> 'B+')
+                if grade_found not in VALID_GRADES:
+                    grade_found = GRADE_CORRECTIONS.get(grade_found, grade_found)
                 all_grades.append((grade_found, credits_found, i, is_failed))
         
         _logger.info(f"Found {len(all_grades)} grades in OCR")

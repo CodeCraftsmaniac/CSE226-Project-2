@@ -834,9 +834,6 @@ class TranscriptOCR:
         student_name = ""
         student_id = ""
 
-        # Track which courses we've already added (avoid duplicates)
-        seen_courses = set()
-
         # Apply corrections to all text first
         corrected_text = [self._apply_corrections(t) for t in raw_text]
 
@@ -862,7 +859,7 @@ class TranscriptOCR:
                         not any(kw in candidate.upper() for kw in skip_keywords)):
                         student_name = candidate
                         _log_debug(f"Student name extracted from same line: {student_name}")
-                
+            
                 # If not found on same line, look ahead
                 # NSU transcripts often have format where values start with ":"
                 if not student_name:
@@ -914,10 +911,6 @@ class TranscriptOCR:
             if course_match:
                 course_code = text
 
-                # Skip if already seen (avoid duplicates from retakes)
-                if course_code in seen_courses:
-                    continue
-
                 # Look ahead for credits and grade
                 credits = 0.0
                 grade = ""
@@ -961,7 +954,6 @@ class TranscriptOCR:
 
                 # Only add if we have valid data
                 if grade and credits > 0:
-                    seen_courses.add(course_code)
                     courses.append(CourseRecord(
                         course_code=course_code,
                         credits=credits,
@@ -970,7 +962,6 @@ class TranscriptOCR:
                     ))
                 elif grade and credits == 0.0:
                     # Some lab courses have 0 credits
-                    seen_courses.add(course_code)
                     courses.append(CourseRecord(
                         course_code=course_code,
                         credits=0.0,
