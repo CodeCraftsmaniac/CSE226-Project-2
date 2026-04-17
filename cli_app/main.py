@@ -202,7 +202,7 @@ def scan_transcript_cloud(file_path):
             
             with open(file_path, 'rb') as f:
                 files = {'file': (file_name, f, mime_type)}
-                data = {'source': 'cli'}
+                data = {'source': 'cli', 'ocr_engine': 'auto'}
                 response = requests.post(
                     f"{CLOUD_API_URL}/upload",
                     files=files,

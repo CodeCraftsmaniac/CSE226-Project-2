@@ -1,9 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
-import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'backend_config.dart';
 import 'storage_service.dart';
+
+import 'dart:io';
 
 class ApiException implements Exception {
   final String message;
@@ -36,8 +38,7 @@ class ApiService {
           handler.next(options);
         },
         onError: (err, handler) {
-          final msg =
-              err.response?.data?['detail'] ??
+          final msg = err.response?.data?['detail'] ??
               err.response?.data?['message'] ??
               err.response?.data?['error'] ??
               err.message ??
@@ -72,8 +73,7 @@ class ApiService {
     } on DioException catch (e) {
       final original = e.error;
       if (original is ApiException) throw original;
-      final msg =
-          e.response?.data?['detail'] ??
+      final msg = e.response?.data?['detail'] ??
           e.response?.data?['message'] ??
           e.response?.data?['error'] ??
           e.message ??
@@ -104,9 +104,8 @@ class ApiService {
     String? filePath,
   }) async {
     // Ensure filename has extension
-    final ext = fileName.contains('.')
-        ? fileName.split('.').last.toLowerCase()
-        : 'pdf';
+    final ext =
+        fileName.contains('.') ? fileName.split('.').last.toLowerCase() : 'pdf';
     final safeFileName = fileName.contains('.') ? fileName : '$fileName.$ext';
 
     // Determine content type based on extension
@@ -142,20 +141,27 @@ class ApiService {
     } else if (filePath != null && filePath.isNotEmpty) {
       // Read file as bytes first (more reliable on mobile)
       try {
-        final file = File(filePath);
-        if (!await file.exists()) {
-          throw ApiException('File not found: $filePath');
+        if (!kIsWeb) {
+          // dart:io File is not available on web
+          final file = _createFile(filePath);
+          if (!await file.exists()) {
+            throw ApiException('File not found: $filePath');
+          }
+          final fileBytes = await file.readAsBytes();
+          if (fileBytes.isEmpty) {
+            throw ApiException('File is empty');
+          }
+          multipartFile = MultipartFile.fromBytes(
+            fileBytes,
+            filename: safeFileName,
+            contentType: contentType,
+          );
+        } else {
+          throw ApiException(
+              'File path not supported on web. Use bytes instead.');
         }
-        final fileBytes = await file.readAsBytes();
-        if (fileBytes.isEmpty) {
-          throw ApiException('File is empty');
-        }
-        multipartFile = MultipartFile.fromBytes(
-          fileBytes,
-          filename: safeFileName,
-          contentType: contentType,
-        );
       } catch (e) {
+        if (e is ApiException) rethrow;
         throw ApiException('Could not read file: $e');
       }
     } else {
@@ -194,6 +200,13 @@ class ApiService {
       _unwrap(_dio.get('/api/v1/analysis/latest'));
 
   Future<Map<String, dynamic>> getScansRaw() => _unwrap(_dio.get('/history'));
+
+  File _createFile(String path) {
+    // On web, this should never be called (guarded by kIsWeb check)
+    // On native platforms, use dart:io File
+    assert(!kIsWeb, '_createFile should not be called on web');
+    return File(path);
+  }
 
   Future<Map<String, dynamic>> getHealth() async {
     try {

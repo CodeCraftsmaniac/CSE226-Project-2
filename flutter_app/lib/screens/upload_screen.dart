@@ -25,7 +25,7 @@ class _UploadScreenState extends State<UploadScreen>
   @override
   bool get wantKeepAlive => true;
 
-  final bool _isDragOver = false;
+  bool _isDragOver = false;
   bool _isUploading = false;
   String? _errorMessage;
 

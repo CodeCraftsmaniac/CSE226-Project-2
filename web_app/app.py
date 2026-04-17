@@ -133,7 +133,7 @@ async def index(request: Request):
         logger.error(f"Failed to render index.html: {e}")
         logger.error(f"Traceback: {error_tb}")
         return HTMLResponse(
-            content=f"<html><body><h1>Error loading page</h1><pre>Template: {TEMPLATES_DIR}\n\nError: {e}\n\nTraceback:\n{error_tb}</pre></body></html>",
+            content="<html><body><h1>Error loading page</h1><p>Please try again later.</p></body></html>",
             status_code=500
         )
 

@@ -735,10 +735,10 @@ async function renderCourseTable(courses) {
         row.className = 'ct-row';
         const gradeClass = getGradeClass(course.grade);
         row.innerHTML = `
-            <span class="ct-code">${course.code || '—'}</span>
+            <span class="ct-code">${esc(course.code || '—')}</span>
             <span class="ct-cr">${course.credits ?? '—'}</span>
-            <span class="ct-grade ${gradeClass}">${course.grade || '—'}</span>
-            <span class="ct-sem">${course.semester || '—'}</span>`;
+            <span class="ct-grade ${gradeClass}">${esc(course.grade || '—')}</span>
+            <span class="ct-sem">${esc(course.semester || '—')}</span>`;
         container.appendChild(row);
         extractedTextEl.scrollTop = extractedTextEl.scrollHeight;
         _logCount++;
@@ -794,10 +794,10 @@ async function showSplitReviewUI(courses) {
             const gradeClass = getGradeClass(course.grade);
             courseRowsHTML += `
                 <tr class="review-course-row" style="animation-delay: ${idx * 20}ms">
-                    <td class="course-code">${course.code || '—'}</td>
+                    <td class="course-code">${esc(course.code || '—')}</td>
                     <td class="course-credits">${course.credits ?? '—'}</td>
-                    <td class="course-grade ${gradeClass}">${course.grade || '—'}</td>
-                    <td class="course-semester">${course.semester || '—'}</td>
+                    <td class="course-grade ${gradeClass}">${esc(course.grade || '—')}</td>
+                    <td class="course-semester">${esc(course.semester || '—')}</td>
                 </tr>`;
         });
 
@@ -1252,7 +1252,7 @@ function populateLevel2(level2) {
         cgpaDisplay.innerHTML = `
             <div class="cgpa-value">${level2.cgpa.toFixed(2)}</div>
             <div class="cgpa-label">Cumulative GPA</div>
-            <div class="standing-badge">${esc(level2.standing)} ${level2.stars}</div>
+            <div class="standing-badge">${esc(level2.standing)} ${esc(level2.stars)}</div>
         `;
     }
 
@@ -1265,8 +1265,8 @@ function populateLevel2(level2) {
             <div class="warning-icon">⚠️</div>
             <div class="warning-text">
                 <strong>CGPA Verification Warning</strong><br>
-                PDF shows: <strong>${warn.pdf_value}</strong> | Calculated: <strong>${warn.calculated_value}</strong><br>
-                <small>Difference: ${warn.difference} - Some courses may be missing or incorrectly parsed</small>
+                PDF shows: <strong>${esc(warn.pdf_value)}</strong> | Calculated: <strong>${esc(warn.calculated_value)}</strong><br>
+                <small>Difference: ${esc(warn.difference)} - Some courses may be missing or incorrectly parsed</small>
             </div>
         `;
     } else if (cgpaWarning) {
@@ -1486,8 +1486,10 @@ function scrollToMcpShowcase() {
     }, 900);
 }
 
-function showToast(message) {
+function showToast(message, type) {
     toast.textContent = message;
+    toast.className = 'toast'; // reset classes
+    if (type) toast.classList.add('toast-' + type);
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 4000);
 }

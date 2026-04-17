@@ -253,8 +253,8 @@ function updateAuthUI(isSignedIn) {
         const name = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email;
         
         authButton.innerHTML = `
-            <img src="${avatarUrl || ''}" alt="Avatar" class="user-avatar" onerror="this.style.display='none'">
-            <span class="user-name">${name.split(' ')[0]}</span>
+            <img src="${esc(avatarUrl || '')}" alt="Avatar" class="user-avatar" onerror="this.style.display='none'">
+            <span class="user-name">${esc(name.split(' ')[0])}</span>
             <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14" class="menu-chevron">
                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
             </svg>
@@ -408,9 +408,9 @@ function renderHistory(history) {
     historyContent.innerHTML = `
         <div class="history-list">
             ${history.map(scan => `
-                <div class="history-item" data-id="${scan.id}">
+                <div class="history-item" data-id="${esc(scan.id)}">
                     <div class="history-info">
-                        <span class="history-filename">${scan.filename || 'Transcript'}</span>
+                        <span class="history-filename">${esc(scan.filename || 'Transcript')}</span>
                         <span class="history-date">${new Date(scan.created_at).toLocaleDateString('en-US', { 
                             year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                         })}</span>
@@ -421,8 +421,8 @@ function renderHistory(history) {
                         <span class="history-credits">${scan.total_credits || 0} credits</span>
                     </div>
                     <div class="history-actions">
-                        <button class="btn-view" onclick="viewHistoryItem('${scan.id}')">View</button>
-                        <button class="btn-delete" onclick="deleteHistoryItem('${scan.id}')">Delete</button>
+                        <button class="btn-view" onclick="viewHistoryItem('${esc(scan.id)}')">View</button>
+                        <button class="btn-delete" onclick="deleteHistoryItem('${esc(scan.id)}')">Delete</button>
                     </div>
                 </div>
             `).join('')}

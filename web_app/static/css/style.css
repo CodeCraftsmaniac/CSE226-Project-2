@@ -2780,6 +2780,23 @@ body.review-active .main {
     opacity: 1;
 }
 
+.toast-error {
+    background: var(--error, #ef4444);
+}
+
+.toast-success {
+    background: var(--success, #22c55e);
+}
+
+.toast-warning {
+    background: #f59e0b;
+}
+
+.toast-info {
+    background: var(--accent, #38bdf8);
+    color: #0f172a;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    Model Selector Dropdown (Header)
    ═══════════════════════════════════════════════════════════════════════════ */

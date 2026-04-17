@@ -299,11 +299,9 @@ class AuthService extends ChangeNotifier {
           response.user ?? Supabase.instance.client.auth.currentUser;
 
       if (session == null || supabaseUser == null) {
-        for (
-          var i = 0;
-          i < 3 && (session == null || supabaseUser == null);
-          i++
-        ) {
+        for (var i = 0;
+            i < 3 && (session == null || supabaseUser == null);
+            i++) {
           await Future<void>.delayed(const Duration(milliseconds: 300));
           session ??= Supabase.instance.client.auth.currentSession;
           supabaseUser ??= Supabase.instance.client.auth.currentUser;
@@ -384,18 +382,15 @@ class AuthService extends ChangeNotifier {
     final fallbackUser = <String, dynamic>{
       'id': supabaseUser.id,
       'email': supabaseUser.email ?? googleUser?.email ?? '',
-      'name':
-          metadata['full_name']?.toString() ??
+      'name': metadata['full_name']?.toString() ??
           metadata['name']?.toString() ??
           googleUser?.displayName ??
           '',
-      'avatar_url':
-          metadata['avatar_url']?.toString() ??
+      'avatar_url': metadata['avatar_url']?.toString() ??
           metadata['picture']?.toString() ??
           googleUser?.photoUrl ??
           '',
-      'provider':
-          supabaseUser.appMetadata['provider']?.toString() ??
+      'provider': supabaseUser.appMetadata['provider']?.toString() ??
           metadata['provider']?.toString() ??
           'google',
     };
@@ -417,12 +412,10 @@ class AuthService extends ChangeNotifier {
     };
 
     try {
-      final response = await http
-          .get(
-            Uri.parse('$_apiBaseUrl/auth/user'),
-            headers: {'Authorization': 'Bearer $token'},
-          )
-          .timeout(const Duration(seconds: 20));
+      final response = await http.get(
+        Uri.parse('$_apiBaseUrl/auth/user'),
+        headers: {'Authorization': 'Bearer $token'},
+      ).timeout(const Duration(seconds: 20));
 
       if (response.statusCode == 200) {
         final body = json.decode(response.body);
@@ -497,9 +490,8 @@ class AuthService extends ChangeNotifier {
       }
 
       final configRaw = body['config'];
-      final config = configRaw is Map
-          ? configRaw.cast<String, dynamic>()
-          : body;
+      final config =
+          configRaw is Map ? configRaw.cast<String, dynamic>() : body;
 
       final remoteSupabaseUrl = _pickString(config, const [
         'supabase_url',
