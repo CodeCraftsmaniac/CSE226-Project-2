@@ -976,10 +976,89 @@ class WebOCR:
         
         _logger.info(f"PASS 0: {len(pass0_courses)} full-line matches (highest confidence)")
         
-        # ===== PASS 1: COLLECT ALL DATA =====
-        
-        # Course code pattern
+        # Course code pattern (needed for PASS 0.5 and PASS 1)
         course_code_pattern = re.compile(r'\b([A-Z]{2,4})\s?(\d{3}[A-Z]?)\b')
+        
+        # ===== PASS 0.5: DOUBLE-GRADE PRE-MATCH =====
+        # When OCR produces "A A" or "A A 2.0 2.0" on a single line, it means two adjacent
+        # courses have their grades merged. Find the two nearest course codes and assign directly.
+        double_grade_pattern = re.compile(r'^([ABCDF][+-]?)\s+([ABCDF][+-]?)(?:\s+(\d+\.\d+)\s+(\d+\.\d+))?\s*$')
+        pass05_courses = []  # [(code, credits, grade, semester, line_num), ...]
+        pass05_matched_lines = set()  # Lines consumed by pass 0.5
+        
+        for i, line in enumerate(lines):
+            line_clean = line.strip()
+            if not line_clean:
+                continue
+            m = double_grade_pattern.match(line_clean)
+            if not m:
+                continue
+            grade1 = m.group(1).upper()
+            grade2 = m.group(2).upper()
+            if grade1 not in VALID_GRADES or grade2 not in VALID_GRADES:
+                continue
+            
+            # Look backward for the two nearest course codes
+            found_codes = []
+            for j in range(i - 1, max(i - 15, -1), -1):
+                prev_line = lines[j].strip()
+                for cm in course_code_pattern.finditer(prev_line):
+                    prefix = cm.group(1).upper()
+                    number = cm.group(2).upper()
+                    code = prefix + number
+                    code = COURSE_CODE_CORRECTIONS.get(code, code)
+                    if prefix in ALL_COURSE_PREFIXES:
+                        found_codes.append((code, j))
+                if len(found_codes) >= 2:
+                    break
+            
+            if len(found_codes) >= 2:
+                # found_codes is in reverse order (closest first), take first two
+                found_codes = found_codes[:2]
+                # Assign grade2 to the closer course, grade1 to the further
+                # (grades appear after their respective course codes, so the closer
+                #  code is the second course and the further is the first)
+                code1, line1 = found_codes[1]  # Further back = first course
+                code2, line2 = found_codes[0]  # Closer = second course
+                
+                # Get credits: look between course code and grade line
+                cr1 = 3.0
+                for j in range(line1 + 1, i):
+                    cr_m = re.match(r'^(\d+\.\d+)$', lines[j].strip())
+                    if cr_m:
+                        v = float(cr_m.group(1))
+                        if 0 < v <= 10:
+                            cr1 = v
+                            break
+                cr2 = 3.0
+                for j in range(line2 + 1, i):
+                    cr_m = re.match(r'^(\d+\.\d+)$', lines[j].strip())
+                    if cr_m:
+                        v = float(cr_m.group(1))
+                        if 0 < v <= 10:
+                            cr2 = v
+                            break
+                
+                # Also check if credits are on the same line as grades (pattern: "A A 2.0 2.0")
+                if m.group(3) and m.group(4):
+                    cr1 = float(m.group(3))
+                    cr2 = float(m.group(4))
+                
+                sem1 = get_semester_for_pass0(line1)
+                sem2 = get_semester_for_pass0(line2)
+                
+                pass05_courses.append((code1, cr1, grade1, sem1, line1))
+                pass05_courses.append((code2, cr2, grade2, sem2, line2))
+                pass05_matched_lines.add(i)
+                # Also mark the credit lines as consumed
+                for j in range(line1 + 1, i):
+                    if re.match(r'^(\d+\.\d+)$', lines[j].strip()):
+                        pass05_matched_lines.add(j)
+                _logger.debug(f"PASS 0.5: {code1}->{grade1}, {code2}->{grade2} from double-grade line {i}")
+        
+        _logger.info(f"PASS 0.5: {len(pass05_courses)} double-grade pre-matches")
+        
+        # ===== PASS 1: COLLECT ALL DATA =====
         
         # Grade patterns (multiple formats)
         grade_patterns = [
@@ -991,6 +1070,8 @@ class WebOCR:
             re.compile(r'\s([ABCDF][+-]?)\s+\d+\.\d+\s+\d+\.\d+'),  # Grade with CC CP anywhere
             re.compile(r'^\s*([123456])\.0\s+([ABCDF][+-]?)\s*'),  # Simpler: "3.0 A" at line start
             re.compile(r'\b([ABCDF][+-]?)\s+\d+\.\d+\s+\d+\.\d+\b'),  # Grade CC CP anywhere in line
+            re.compile(r'^([ABCDF][+-]?)\s+([ABCDF][+-]?)\s+\d+\.\d+\s+\d+\.\d+'),  # "A A 2.0 2.0" (double grade from merged lines)
+            re.compile(r'^([ABCDF][+-]?)\s+([ABCDF][+-]?)\s*$'),  # "A A" standalone (credits on next line)
         ]
         
         # Find ALL semester headers with their line numbers
@@ -1047,8 +1128,8 @@ class WebOCR:
         seen_code_in_line = {}  # Track course codes per line to avoid duplicates
         
         for i, line in enumerate(lines):
-            # Skip lines already matched in PASS 0
-            if i in pass0_matched_lines:
+            # Skip lines already matched in PASS 0 or PASS 0.5
+            if i in pass0_matched_lines or i in pass05_matched_lines:
                 continue
             
             line_clean = line.strip()
@@ -1080,8 +1161,10 @@ class WebOCR:
                     continue
                 seen_code_in_line[line_key] = True
                 
-                # Skip if already matched in PASS 0
+                # Skip if already matched in PASS 0 or PASS 0.5
                 if any(c[0] == code and c[4] == i for c in pass0_courses):
+                    continue
+                if any(c[0] == code and c[4] == i for c in pass05_courses):
                     continue
                 
                 semester = get_semester_for_line(i)
@@ -1184,6 +1267,46 @@ class WebOCR:
                         if cr_match:
                             credits_found = float(cr_match.group(1))
                             break
+            
+            # Try pattern 9: Double grade "A A 2.0 2.0" (OCR merges adjacent lines)
+            if not grade_found:
+                match = grade_patterns[8].match(line_clean)
+                if match:
+                    grade1 = match.group(1).upper()
+                    grade2 = match.group(2).upper()
+                    # Both grades are valid — add first one, second will be found on next iteration
+                    # or add both now since they represent two separate course grades
+                    if grade1 in VALID_GRADES or GRADE_CORRECTIONS.get(grade1, '') in VALID_GRADES:
+                        grade1 = GRADE_CORRECTIONS.get(grade1, grade1) if grade1 not in VALID_GRADES else grade1
+                        all_grades.append((grade1, credits_found, i, is_failed))
+                    if grade2 in VALID_GRADES or GRADE_CORRECTIONS.get(grade2, '') in VALID_GRADES:
+                        grade2 = GRADE_CORRECTIONS.get(grade2, grade2) if grade2 not in VALID_GRADES else grade2
+                        all_grades.append((grade2, credits_found, i, is_failed))
+                    grade_found = None  # Already added above, skip the default append
+            
+            # Try pattern 10: Double grade "A A" standalone (credits on next line)
+            if not grade_found:
+                match = grade_patterns[9].match(line_clean)
+                if match:
+                    grade1 = match.group(1).upper()
+                    grade2 = match.group(2).upper()
+                    # Look ahead for credits on next line (e.g., "2.0 2.0")
+                    next_credits = []
+                    for j in range(i + 1, min(i + 3, len(lines))):
+                        cr_match = re.match(r'^(\d+\.\d+)\s+(\d+\.\d+)', lines[j].strip())
+                        if cr_match:
+                            next_credits = [float(cr_match.group(1)), float(cr_match.group(2))]
+                            break
+                    
+                    if grade1 in VALID_GRADES or GRADE_CORRECTIONS.get(grade1, '') in VALID_GRADES:
+                        grade1 = GRADE_CORRECTIONS.get(grade1, grade1) if grade1 not in VALID_GRADES else grade1
+                        cr1 = next_credits[0] if len(next_credits) >= 1 else credits_found
+                        all_grades.append((grade1, cr1, i, is_failed))
+                    if grade2 in VALID_GRADES or GRADE_CORRECTIONS.get(grade2, '') in VALID_GRADES:
+                        grade2 = GRADE_CORRECTIONS.get(grade2, grade2) if grade2 not in VALID_GRADES else grade2
+                        cr2 = next_credits[1] if len(next_credits) >= 2 else credits_found
+                        all_grades.append((grade2, cr2, i, is_failed))
+                    grade_found = None  # Already added above, skip the default append
             
             if grade_found:
                 # Apply grade corrections (e.g., '8+' -> 'B+')
@@ -1303,11 +1426,49 @@ class WebOCR:
                 else:
                     still_unmatched.append((code, code_line, semester))
             
-            # DO NOT use "last resort" matching — assigning random grades is worse than reporting unmatched
+            # STRAY GRADE PASS: For still-unmatched courses, scan nearby raw lines
+            # for standalone grade letters that weren't captured by grade patterns
             if still_unmatched:
-                _logger.warning(f"Unmatched courses (no confident grade found): {[c[0] for c in still_unmatched]}")
+                stray_matched = []
+                stray_unmatched = []
+                for code, code_line, semester in still_unmatched:
+                    stray_grade = None
+                    stray_credits = 3.0
+                    # Look within 25 lines after the course code for a standalone grade
+                    for j in range(code_line + 1, min(code_line + 25, len(lines))):
+                        raw_line = lines[j].strip()
+                        # Skip watermark/noise lines
+                        if not raw_line or len(raw_line) > 30:
+                            continue
+                        # Check for standalone grade letter
+                        grade_match = re.match(r'^([ABCDF][+-]?)\s*$', raw_line)
+                        if grade_match:
+                            g = grade_match.group(1).upper()
+                            if g in VALID_GRADES:
+                                stray_grade = g
+                                break
+                        # Also check for "grade credit credit" format on same line
+                        grade_match2 = re.match(r'^([ABCDF][+-]?)\s+(\d+\.\d+)\s+(\d+\.\d+)', raw_line)
+                        if grade_match2:
+                            g = grade_match2.group(1).upper()
+                            if g in VALID_GRADES:
+                                stray_grade = g
+                                stray_credits = float(grade_match2.group(2))
+                                break
+                    
+                    if stray_grade:
+                        matched.append((code, stray_credits, stray_grade, semester, code_line, False))
+                        _logger.debug(f"STRAY matched: {code} -> {stray_grade}")
+                        stray_matched.append(code)
+                    else:
+                        stray_unmatched.append((code, code_line, semester))
+                
+                if stray_matched:
+                    _logger.info(f"STRAY pass matched {len(stray_matched)} courses: {stray_matched}")
+                if stray_unmatched:
+                    _logger.warning(f"Unmatched courses (no confident grade found): {[c[0] for c in stray_unmatched]}")
         
-        _logger.info(f"Matched {len(matched)} courses via multi-pass, {len(pass0_courses)} via PASS 0")
+        _logger.info(f"Matched {len(matched)} courses via multi-pass, {len(pass0_courses)} via PASS 0, {len(pass05_courses)} via PASS 0.5")
         
         # Build final course list — PASS 0 results first (highest confidence)
         seen_course_keys = set()
@@ -1321,6 +1482,19 @@ class WebOCR:
                     grade=grade,
                     semester=semester,
                     confidence=0.98  # Full-line match = highest confidence
+                ))
+        
+        # Then PASS 0.5 results (double-grade pre-match, high confidence)
+        for code, credits, grade, semester, line_num in pass05_courses:
+            key = (code, semester)
+            if key not in seen_course_keys:
+                seen_course_keys.add(key)
+                courses.append(CourseRecord(
+                    course_code=code,
+                    credits=credits,
+                    grade=grade,
+                    semester=semester,
+                    confidence=0.95  # Double-grade pre-match = high confidence
                 ))
         
         # Then add multi-pass matches (lower confidence)

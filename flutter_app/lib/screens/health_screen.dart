@@ -374,6 +374,21 @@ class _HealthScreenState extends State<HealthScreen>
 
       const SizedBox(height: 24),
 
+      // ── Metrics section ──
+      SectionHeader(
+        eyebrow: 'Server Metrics',
+        title: 'Request Statistics',
+      ).animate().fadeIn(delay: 420.ms, duration: 400.ms),
+
+      const SizedBox(height: 16),
+
+      _MetricsCard(metrics: h.metrics)
+          .animate()
+          .fadeIn(delay: 440.ms, duration: 450.ms)
+          .slideY(begin: 0.15, end: 0, duration: 450.ms, curve: Curves.easeOut),
+
+      const SizedBox(height: 24),
+
       // ── Polling info footer ──
       _PollingFooter().animate().fadeIn(delay: 460.ms, duration: 400.ms),
     ];
@@ -1135,6 +1150,35 @@ class _LayerExpandedDetails extends StatelessWidget {
               ),
             ),
           ],
+
+          // ── Memory & Provider info ──
+          if (layer.memoryMb != null || layer.provider != null) ...[
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                if (layer.memoryMb != null && layer.memoryMb! > 0)
+                  Expanded(
+                    child: _StatMini(
+                      label: 'Memory',
+                      value: '${layer.memoryMb} MB',
+                      accent: kWarning,
+                    ),
+                  ),
+                if (layer.memoryMb != null &&
+                    layer.memoryMb! > 0 &&
+                    layer.provider != null)
+                  const SizedBox(width: 8),
+                if (layer.provider != null)
+                  Expanded(
+                    child: _StatMini(
+                      label: 'Provider',
+                      value: layer.provider!,
+                      accent: kPrimary,
+                    ),
+                  ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -1565,6 +1609,130 @@ class _PollingFooter extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Metrics Card
+// ═══════════════════════════════════════════════════════════════════════════════
+
+class _MetricsCard extends StatelessWidget {
+  const _MetricsCard({required this.metrics});
+  final HealthMetrics metrics;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                kPrimary.withValues(alpha: 0.08),
+                Colors.white.withValues(alpha: 0.03),
+              ],
+            ),
+            border: Border.all(
+              color: kPrimary.withValues(alpha: 0.22),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              // Row 1: User Requests + Health Checks
+              Row(
+                children: [
+                  Expanded(
+                    child: _MetricTile(
+                      icon: Icons.person_rounded,
+                      label: 'User Requests',
+                      value: metrics.userRequests.toString(),
+                      color: kSuccess,
+                    ),
+                  ),
+                  Container(width: 1, height: 48, color: kBorder),
+                  Expanded(
+                    child: _MetricTile(
+                      icon: Icons.monitor_heart_rounded,
+                      label: 'Health Checks',
+                      value: metrics.healthChecks.toString(),
+                      color: kPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              const Divider(color: kBorder, height: 1),
+              const SizedBox(height: 14),
+              // Row 2: Errors + Error Rate
+              Row(
+                children: [
+                  Expanded(
+                    child: _MetricTile(
+                      icon: Icons.error_outline_rounded,
+                      label: 'Errors',
+                      value: metrics.errors.toString(),
+                      color: metrics.errors > 0 ? kError : kSuccess,
+                    ),
+                  ),
+                  Container(width: 1, height: 48, color: kBorder),
+                  Expanded(
+                    child: _MetricTile(
+                      icon: Icons.trending_up_rounded,
+                      label: 'Error Rate',
+                      value: '${metrics.errorRate.toStringAsFixed(2)}%',
+                      color: metrics.errorRate > 5 ? kError : kSuccess,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MetricTile extends StatelessWidget {
+  const _MetricTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: AppText.callout(color: kTextPrimary)
+              .copyWith(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style:
+              AppText.eyebrow(color: kTextTertiary).copyWith(letterSpacing: 0),
+        ),
+      ],
     );
   }
 }

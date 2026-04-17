@@ -211,7 +211,7 @@ class ApiService {
   Future<Map<String, dynamic>> getHealth() async {
     try {
       return await _unwrap(
-        Dio().get(backendUri('/health/realtime').toString()),
+        _dio.get('/health/realtime'),
       );
     } catch (_) {
       return {'status': 'unreachable'};
