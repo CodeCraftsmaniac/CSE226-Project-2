@@ -23,7 +23,7 @@ reportlab>=4.0.0       # PDF generation
 
 # Database - Supabase
 supabase>=2.0.0
-python-jose>=3.3.0
+python-jose>=3.5.0
 
 # HTTP Client
 requests>=2.31.0
