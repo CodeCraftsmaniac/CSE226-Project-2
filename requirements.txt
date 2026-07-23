@@ -23,7 +23,7 @@ python-dotenv>=1.0.0   # Environment variable management
 
 # Database - Supabase
 supabase>=2.0.0        # Supabase Python client
-python-jose>=3.3.0     # JWT token handling
+python-jose>=3.5.0     # JWT token handling
 
 # Production Server
 gunicorn>=21.0.0       # Production server (with uvicorn workers)
