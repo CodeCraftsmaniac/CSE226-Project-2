@@ -15,4 +15,4 @@ isort>=5.13.0
 mypy>=1.8.0
 
 # Type stubs
-types-requests>=2.31.0
+types-requests>=2.33.0.20260712
