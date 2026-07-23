@@ -2,7 +2,7 @@
 # ========================================
 
 # Core
-rich>=13.0.0           # Premium terminal UI
+rich>=15.0.0           # Premium terminal UI
 requests>=2.31.0       # HTTP client for cloud API
 
 # PDF & Image Processing (lightweight)
